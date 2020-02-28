@@ -31,7 +31,7 @@ namespace Libvirt
     /// <summary>
     /// Libvirt exception
     /// </summary>
-    public class LibvirtException : ApplicationException
+    public class LibvirtException : Exception
     {
         /// <summary>
         /// Initializes a new instance
@@ -57,17 +57,6 @@ namespace Libvirt
         /// <param name="innerException">Inner exception</param>
         public LibvirtException(string message, Exception innerException)
             : base(message, innerException)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new insance with serialized data
-        /// </summary>
-        /// <param name="info"></param>
-        /// <param name="context"></param>
-        [SecuritySafeCritical]
-        protected LibvirtException(SerializationInfo info, StreamingContext context)
-            : base(info, context)
         {
         }
     }

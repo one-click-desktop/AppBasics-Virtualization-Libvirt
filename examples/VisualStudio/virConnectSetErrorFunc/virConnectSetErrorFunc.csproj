@@ -77,9 +77,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\LibvirtBindings_VisualStudio.csproj">
-      <Project>{592FE0DB-C205-4934-BD20-79BDAB1584C1}</Project>
-      <Name>LibvirtBindings</Name>
+    <ProjectReference Include="..\..\..\src\libvirt-dotnet_VisualStudio.csproj">
+      <Project>{592fe0db-c205-4934-bd20-79bdab1584c1}</Project>
+      <Name>libvirt-dotnet_VisualStudio</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

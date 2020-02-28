@@ -29,17 +29,17 @@ namespace virConnectOpen
         {
             lbStoragePool.Items.Clear();
 
-            IntPtr conn = Connect.Open(tbURI.Text);
+            IntPtr conn = NativeVirConnect.Open(tbURI.Text);
             if (conn != IntPtr.Zero)
             {
-                int numOfStoragePools = Connect.NumOfStoragePools(conn);
+                int numOfStoragePools = NativeVirConnect.NumOfStoragePools(conn);
                 if (numOfStoragePools == -1)
                 {
                     ShowError("Unable to get the number of storage pools");
                     goto cleanup;
                 }
                 string[] storagePoolsNames = new string[numOfStoragePools];
-                int listStoragePools = Connect.ListStoragePools(conn, ref storagePoolsNames, numOfStoragePools);
+                int listStoragePools = NativeVirConnect.ListStoragePools(conn, ref storagePoolsNames, numOfStoragePools);
                 if (listStoragePools == -1)
                 {
                     ShowError("Unable to list storage pools");
@@ -48,7 +48,7 @@ namespace virConnectOpen
                 foreach (string storagePoolName in storagePoolsNames)
                     lbStoragePool.Items.Add(storagePoolName);
             cleanup:
-                Connect.Close(conn);
+                NativeVirConnect.Close(conn);
             }
             else
             {

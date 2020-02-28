@@ -8,9 +8,8 @@ libvirt bindings for .NET, but we thought it would be useful to have a little
 more .NETish interface for working with libvirt. 
 
 This is still a work in progress, so please expect some breaking changes for 
-the time being. As soon as this is ready for prime time, we have a nuget package 
-planned and will ask the original authors and the libvirt team if they want to 
-include it in the project.
+the time being. As soon as this is ready for prime time will ask the original 
+authors or the libvirt team if they like to add it to the libvirt project.
 
 Please ignore the MonoDevelop solution for now. We did not maintain it. The
 code runs fine on mono (tested with mono 6.8 on RHEL 8).
@@ -48,3 +47,10 @@ static void Main(string[] args)
 
 Once again, feel free to contribute!
 
+# Nuget package
+
+A NuGet package is now also available:
+
+```PS
+Install-Package libvirt-dotnet
+```

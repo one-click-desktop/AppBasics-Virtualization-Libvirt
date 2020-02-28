@@ -34,14 +34,14 @@ namespace virConnectSetErrorFunc
 
         private void btnConnect_Click(object sender, EventArgs e)
         {
-            IntPtr conn = Connect.Open(tbURI.Text);
+            IntPtr conn = NativeVirConnect.Open(tbURI.Text);
 
             if (conn != IntPtr.Zero)
             {
-                Errors.SetErrorFunc(IntPtr.Zero, ErrorCallback);
-                IntPtr domain = Domain.LookupByName(conn, tbDomainName.Text);
+                NativeVirErrors.SetErrorFunc(IntPtr.Zero, ErrorCallback);
+                IntPtr domain = NativeVirDomain.LookupByName(conn, tbDomainName.Text);
                 VirDomainInfo di = new VirDomainInfo();
-                Domain.GetInfo(domain, di);
+                NativeVirDomain.GetInfo(domain, di);
                 textBox1.Text = di.State.ToString();
                 textBox2.Text = di.maxMem.ToString();
                 textBox3.Text = di.memory.ToString();
@@ -50,7 +50,7 @@ namespace virConnectSetErrorFunc
             }
             else
             {
-                VirError error = Errors.GetLastError();
+                VirError error = NativeVirErrors.GetLastError();
                 ShowError(error);
             }
         }

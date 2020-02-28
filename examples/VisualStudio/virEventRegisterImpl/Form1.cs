@@ -71,7 +71,7 @@ namespace virEventRegisterImpl
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            Event.RegisterImpl(AddHandleFunc, UpdateHandleFunc, RemoveHandleFunc, AddTimeoutFunc, UpdateTimeoutFunc,
+            NativeVirEvent.RegisterImpl(AddHandleFunc, UpdateHandleFunc, RemoveHandleFunc, AddTimeoutFunc, UpdateTimeoutFunc,
                                RemoveTimeoutFunc);
         }
 
@@ -126,8 +126,8 @@ namespace virEventRegisterImpl
 
         private void btnConnect_Click(object sender, EventArgs e)
         {
-            _conn = Connect.Open(tbURI.Text);
-            int cbInstall = Connect.DomainEventRegister(_conn, DomainEventCallback, IntPtr.Zero, FreeFunc);
+            _conn = NativeVirConnect.Open(tbURI.Text);
+            int cbInstall = NativeVirConnect.DomainEventRegister(_conn, DomainEventCallback, IntPtr.Zero, FreeFunc);
             if (cbInstall == 0)
             {
                 tbEvents.Text = "Connection Done\r\n";

@@ -63,15 +63,15 @@ namespace virConnectOpenAuth
             };
 
             // Request the connection
-            IntPtr conn = Connect.OpenAuth(tbURI.Text, ref auth, 0);
+            IntPtr conn = NativeVirConnect.OpenAuth(tbURI.Text, ref auth, 0);
             Marshal.FreeHGlobal(authDataPtr);
 
             if (conn != IntPtr.Zero)
             {
                 // Get the number of defined (not running) domains
-                int numOfDefinedDomains = Connect.NumOfDefinedDomains(conn);
+                int numOfDefinedDomains = NativeVirConnect.NumOfDefinedDomains(conn);
                 string[] definedDomainNames = new string[numOfDefinedDomains];
-                if (Connect.ListDefinedDomains(conn, ref definedDomainNames, numOfDefinedDomains) == -1)
+                if (NativeVirConnect.ListDefinedDomains(conn, ref definedDomainNames, numOfDefinedDomains) == -1)
                 {
                     MessageBox.Show("Unable to list defined domains", "List defined domains failed", MessageBoxButtons.OK,
                                     MessageBoxIcon.Error);
@@ -83,9 +83,9 @@ namespace virConnectOpenAuth
                     lbDomains.Items.Add(domainName);
 
                 // Get the number of running domains
-                int numOfRunningDomain = Connect.NumOfDomains(conn);
+                int numOfRunningDomain = NativeVirConnect.NumOfDomains(conn);
                 int[] runningDomainIDs = new int[numOfRunningDomain];
-                if (Connect.ListDomains(conn, runningDomainIDs, numOfRunningDomain) == -1)
+                if (NativeVirConnect.ListDomains(conn, runningDomainIDs, numOfRunningDomain) == -1)
                 {
                     MessageBox.Show("Unable to list running domains", "List running domains failed", MessageBoxButtons.OK,
                                     MessageBoxIcon.Error);
@@ -95,15 +95,15 @@ namespace virConnectOpenAuth
                 // Add the domain names to the listbox
                 foreach (int runningDomainID in runningDomainIDs)
                 {
-                    IntPtr domainPtr = Domain.LookupByID(conn, runningDomainID);
+                    IntPtr domainPtr = NativeVirDomain.LookupByID(conn, runningDomainID);
                     if (domainPtr == IntPtr.Zero)
                     {
                         MessageBox.Show("Unable to lookup domains by id", "Lookup domain failed", MessageBoxButtons.OK,
                                     MessageBoxIcon.Error);
                         goto cleanup;
                     }
-                    string domainName = Domain.GetName(domainPtr);
-                    Domain.Free(domainPtr);
+                    string domainName = NativeVirDomain.GetName(domainPtr);
+                    NativeVirDomain.Free(domainPtr);
                     if (string.IsNullOrEmpty(domainName))
                     {
                         MessageBox.Show("Unable to get domain name", "Get domain name failed", MessageBoxButtons.OK,
@@ -114,7 +114,7 @@ namespace virConnectOpenAuth
                 }
 
             cleanup:
-                Connect.Close(conn);
+                NativeVirConnect.Close(conn);
             }
             else
             {

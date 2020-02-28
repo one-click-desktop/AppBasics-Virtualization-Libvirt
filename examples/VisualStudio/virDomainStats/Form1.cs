@@ -48,16 +48,16 @@ namespace virDomainStats
 
         private void Connect_Click(object sender, EventArgs e)
         {
-            _conn = Connect.Open(tbURI.Text);
-            Errors.SetErrorFunc(IntPtr.Zero, ErrorCallback);
+            _conn = NativeVirConnect.Open(tbURI.Text);
+            NativeVirErrors.SetErrorFunc(IntPtr.Zero, ErrorCallback);
             cbDomains.Items.Clear();
-            int nbDomains = Connect.NumOfDomains(_conn);
+            int nbDomains = NativeVirConnect.NumOfDomains(_conn);
             int[] domainIDs = new int[nbDomains];
-            Connect.ListDomains(_conn, domainIDs, nbDomains);
-            foreach (IntPtr domainPtr in domainIDs.Select(domainID => Domain.LookupByID(_conn, domainID)))
+            NativeVirConnect.ListDomains(_conn, domainIDs, nbDomains);
+            foreach (IntPtr domainPtr in domainIDs.Select(domainID => NativeVirDomain.LookupByID(_conn, domainID)))
             {
-                cbDomains.Items.Add(Domain.GetName(domainPtr));
-                Domain.Free(domainPtr);
+                cbDomains.Items.Add(NativeVirDomain.GetName(domainPtr));
+                NativeVirDomain.Free(domainPtr);
             }
             if (cbDomains.Items.Count > 0)
             {
@@ -67,12 +67,12 @@ namespace virDomainStats
 
         private void cbDomains_SelectedIndexChanged(object sender, EventArgs e)
         {
-            _domainPtr = Domain.LookupByName(_conn, cbDomains.Text);
+            _domainPtr = NativeVirDomain.LookupByName(_conn, cbDomains.Text);
 
             UpdateDomainInfo();
 
             cbBlockDev.Items.Clear();
-            foreach (string dev in  GetDomainBlockDevices(Domain.GetXMLDesc(_domainPtr, 0)))
+            foreach (string dev in  GetDomainBlockDevices(NativeVirDomain.GetXMLDesc(_domainPtr, 0)))
             {
                 cbBlockDev.Items.Add(dev);
             }
@@ -82,7 +82,7 @@ namespace virDomainStats
             }
 
             cbInterfaces.Items.Clear();
-            foreach (string iface in GetDomainInterfaces(Domain.GetXMLDesc(_domainPtr, 0)))
+            foreach (string iface in GetDomainInterfaces(NativeVirDomain.GetXMLDesc(_domainPtr, 0)))
             {
                 cbInterfaces.Items.Add(iface);
             }
@@ -104,7 +104,7 @@ namespace virDomainStats
         private void UpdateDomainInfo()
         {
             VirDomainInfo domainInfo = new VirDomainInfo();
-            Domain.GetInfo(_domainPtr, domainInfo);
+            NativeVirDomain.GetInfo(_domainPtr, domainInfo);
 
             tbState.Text = domainInfo.State.ToString();
             tbMaxMem.Text = domainInfo.maxMem.ToString();
@@ -125,7 +125,7 @@ namespace virDomainStats
         private void cbBlockDev_SelectedIndexChanged(object sender, EventArgs e)
         {
             VirDomainBlockStatsStruct blockStat;
-            Domain.BlockStats(_domainPtr, cbBlockDev.Text, out blockStat);//, Marshal.SizeOf(blockStat));
+            NativeVirDomain.BlockStats(_domainPtr, cbBlockDev.Text, out blockStat);//, Marshal.SizeOf(blockStat));
 
             tbReadRequest.Text = blockStat.rd_req.ToString();
             tbReadBytes.Text = blockStat.rd_bytes.ToString();
@@ -148,7 +148,7 @@ namespace virDomainStats
         private void cbInterfaces_SelectedIndexChanged(object sender, EventArgs e)
         {
             VirDomainInterfaceStatsStruct interfaceStat;
-            Domain.InterfaceStats(_domainPtr, cbInterfaces.Text, out interfaceStat);
+            NativeVirDomain.InterfaceStats(_domainPtr, cbInterfaces.Text, out interfaceStat);
             tbRxBytes.Text = interfaceStat.rx_bytes.ToString();
             tbRxDrop.Text = interfaceStat.rx_drop.ToString();
             tbRxErrs.Text = interfaceStat.rx_errs.ToString();
@@ -161,8 +161,8 @@ namespace virDomainStats
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Domain.Free(_domainPtr);
-            Connect.Close(_conn);
+            NativeVirDomain.Free(_domainPtr);
+            NativeVirConnect.Close(_conn);
         }
     }
 }
