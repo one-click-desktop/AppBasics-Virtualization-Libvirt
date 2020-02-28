@@ -39,9 +39,9 @@ namespace virEventRegisterImpl
     public partial class Form1 : Form
     {
         private int _fd;
-        private EventHandleType _event;
+        private VirEventHandleType _event;
         private EventHandleCallback _cb;
-        private FreeCallback _ff;
+        private VirFreeCallback _ff;
         private IntPtr _opaque;
         private int _active;
         private int _timeout;
@@ -92,7 +92,7 @@ namespace virEventRegisterImpl
             _timeout = timeout;
         }
 
-        private int AddTimeoutFunc(int timeout, EventTimeoutCallback cb, IntPtr opaque, FreeCallback ff)
+        private int AddTimeoutFunc(int timeout, EventTimeoutCallback cb, IntPtr opaque, VirFreeCallback ff)
         {
             _active = 1;
             _timeout = timeout;
@@ -111,13 +111,13 @@ namespace virEventRegisterImpl
         }
         private void UpdateHandleFunc(int watch, int events)
         {
-            _event = (EventHandleType)events;
+            _event = (VirEventHandleType)events;
         }
 
-        private int AddHandleFunc(int fd, int events, EventHandleCallback cb, IntPtr opaque, FreeCallback ff)
+        private int AddHandleFunc(int fd, int events, EventHandleCallback cb, IntPtr opaque, VirFreeCallback ff)
         {
             _fd = fd;
-            _event = (EventHandleType)events;
+            _event = (VirEventHandleType)events;
             _cb = cb;
             _ff = ff;
             _opaque = opaque;
@@ -139,90 +139,90 @@ namespace virEventRegisterImpl
             }
         }
 
-        private void DomainEventCallback(IntPtr conn, IntPtr dom, DomainEventType evt, int detail, IntPtr opaque)
+        private void DomainEventCallback(IntPtr conn, IntPtr dom, VirDomainEventType evt, int detail, IntPtr opaque)
         {
             switch (evt)
             {
-                case DomainEventType.VIR_DOMAIN_EVENT_DEFINED:
+                case VirDomainEventType.VIR_DOMAIN_EVENT_DEFINED:
                     BeginInvoke(new AddEventDelegate(AddEvent), new object[] {"Domain defined :"});
-                    switch ((DomainEventDefinedDetailType)detail)
+                    switch ((VirDomainEventDefinedDetailType)detail)
                     {
-                        case DomainEventDefinedDetailType.VIR_DOMAIN_EVENT_DEFINED_ADDED:
+                        case VirDomainEventDefinedDetailType.VIR_DOMAIN_EVENT_DEFINED_ADDED:
                             BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain added\r\n" });
                             break;
-                        case DomainEventDefinedDetailType.VIR_DOMAIN_EVENT_DEFINED_UPDATED:
+                        case VirDomainEventDefinedDetailType.VIR_DOMAIN_EVENT_DEFINED_UPDATED:
                             BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain updated\r\n" });
                             break;
                     }
                     break;
-                case DomainEventType.VIR_DOMAIN_EVENT_UNDEFINED:
+                case VirDomainEventType.VIR_DOMAIN_EVENT_UNDEFINED:
                     BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain undefined :" });
-                    switch ((DomainEventUndefinedDetailType)detail)
+                    switch ((VirDomainEventUndefinedDetailType)detail)
                     {
-                        case DomainEventUndefinedDetailType.VIR_DOMAIN_EVENT_UNDEFINED_REMOVED:
+                        case VirDomainEventUndefinedDetailType.VIR_DOMAIN_EVENT_UNDEFINED_REMOVED:
                             BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain deleted\r\n" });
                             break;
                     }
                     break;
-                case DomainEventType.VIR_DOMAIN_EVENT_RESUMED:
+                case VirDomainEventType.VIR_DOMAIN_EVENT_RESUMED:
                     BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain resumed :" });
-                    switch ((DomainEventResumedDetailType)detail)
+                    switch ((VirDomainEventResumedDetailType)detail)
                     {
-                        case DomainEventResumedDetailType.VIR_DOMAIN_EVENT_RESUMED_MIGRATED:
+                        case VirDomainEventResumedDetailType.VIR_DOMAIN_EVENT_RESUMED_MIGRATED:
                             BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain migrated\r\n" });
                             break;
-                        case DomainEventResumedDetailType.VIR_DOMAIN_EVENT_RESUMED_UNPAUSED:
+                        case VirDomainEventResumedDetailType.VIR_DOMAIN_EVENT_RESUMED_UNPAUSED:
                             BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain unpaused\r\n" });
                             break;
                     }
                     break;
-                case DomainEventType.VIR_DOMAIN_EVENT_STARTED:
+                case VirDomainEventType.VIR_DOMAIN_EVENT_STARTED:
                     BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain started :" });
-                    switch ((DomainEventStartedDetailType)detail)
+                    switch ((VirDomainEventStartedDetailType)detail)
                     {
-                        case DomainEventStartedDetailType.VIR_DOMAIN_EVENT_STARTED_BOOTED:
+                        case VirDomainEventStartedDetailType.VIR_DOMAIN_EVENT_STARTED_BOOTED:
                             BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain booted\r\n" });
                             break;
-                        case DomainEventStartedDetailType.VIR_DOMAIN_EVENT_STARTED_MIGRATED:
+                        case VirDomainEventStartedDetailType.VIR_DOMAIN_EVENT_STARTED_MIGRATED:
                             BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain migrated\r\n" });
                             break;
-                        case DomainEventStartedDetailType.VIR_DOMAIN_EVENT_STARTED_RESTORED:
+                        case VirDomainEventStartedDetailType.VIR_DOMAIN_EVENT_STARTED_RESTORED:
                             BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain restored\r\n" });
                             break;
                     }
                     break;
-                case DomainEventType.VIR_DOMAIN_EVENT_STOPPED:
+                case VirDomainEventType.VIR_DOMAIN_EVENT_STOPPED:
                     BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain stopped :" });
-                    switch ((DomainEventStoppedDetailType)detail)
+                    switch ((VirDomainEventStoppedDetailType)detail)
                     {
-                        case DomainEventStoppedDetailType.VIR_DOMAIN_EVENT_STOPPED_CRASHED:
+                        case VirDomainEventStoppedDetailType.VIR_DOMAIN_EVENT_STOPPED_CRASHED:
                             BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain crashed\r\n" });
                             break;
-                        case DomainEventStoppedDetailType.VIR_DOMAIN_EVENT_STOPPED_DESTROYED:
+                        case VirDomainEventStoppedDetailType.VIR_DOMAIN_EVENT_STOPPED_DESTROYED:
                             BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain destroyed\r\n" });
                             break;
-                        case DomainEventStoppedDetailType.VIR_DOMAIN_EVENT_STOPPED_FAILED:
+                        case VirDomainEventStoppedDetailType.VIR_DOMAIN_EVENT_STOPPED_FAILED:
                             BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain failed\r\n" });
                             break;
-                        case DomainEventStoppedDetailType.VIR_DOMAIN_EVENT_STOPPED_MIGRATED:
+                        case VirDomainEventStoppedDetailType.VIR_DOMAIN_EVENT_STOPPED_MIGRATED:
                             BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain migrated\r\n" });
                             break;
-                        case DomainEventStoppedDetailType.VIR_DOMAIN_EVENT_STOPPED_SAVED:
+                        case VirDomainEventStoppedDetailType.VIR_DOMAIN_EVENT_STOPPED_SAVED:
                             BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain saved\r\n" });
                             break;
-                        case DomainEventStoppedDetailType.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN:
+                        case VirDomainEventStoppedDetailType.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN:
                             BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain shutdown\r\n" });
                             break;
                     }
                     break;
-                case DomainEventType.VIR_DOMAIN_EVENT_SUSPENDED:
+                case VirDomainEventType.VIR_DOMAIN_EVENT_SUSPENDED:
                     BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain suspended :" });
-                    switch ((DomainEventSuspendedDetailType)detail)
+                    switch ((VirDomainEventSuspendedDetailType)detail)
                     {
-                        case DomainEventSuspendedDetailType.VIR_DOMAIN_EVENT_SUSPENDED_MIGRATED:
+                        case VirDomainEventSuspendedDetailType.VIR_DOMAIN_EVENT_SUSPENDED_MIGRATED:
                             BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain migrated\r\n" });
                             break;
-                        case DomainEventSuspendedDetailType.VIR_DOMAIN_EVENT_SUSPENDED_PAUSED:
+                        case VirDomainEventSuspendedDetailType.VIR_DOMAIN_EVENT_SUSPENDED_PAUSED:
                             BeginInvoke(new AddEventDelegate(AddEvent), new object[] { " domain paused\r\n" });
                             break;
                     }

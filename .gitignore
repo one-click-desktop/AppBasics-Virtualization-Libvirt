@@ -1,3 +1,79 @@
+# User-specific files
+**/*.suo
+**/*.user
+**/*.userosscache
+**/*.sln.docstates
+**/Thumbs.db
+
+# User-specific files (MonoDevelop/Xamarin Studio)
+**/*.userprefs
+
+# Build results
+**/[Dd]ebug/
+**/[Dd]ebugPublic/
+**/[Rr]elease/
+**/[Rr]eleases/
+**/x64/
+**/x86/
+**/bld/
+**/[Bb]in/
+**/[Oo]bj/
+**/[Ll]og/
+
+# Visual Studio 2015/2017 cache/options directory
+**/.vs/
+
+# MSTest test Results
+**/[Tt]est[Rr]esult*/
+**/[Bb]uild[Ll]og.*
+
+# Build Results of an ATL Project
+**/[Dd]ebugPS/
+**/[Rr]eleasePS/
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+**/Properties/launchSettings.json
+
+# Files built by Visual Studio
+*_i.c
+*_p.c
+*_i.h
+*.ilk
+*.meta
+*.obj
+*.pch
+*.pdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# Visual Studio Trace Files
+*.e2e
+
+# MSBuild Binary and Structured Log
+**/*.binlog
 
 *.pidb
 *.userprefs
@@ -7,8 +83,3 @@ _ReSharper*
 *.pdb
 Thumbs.db
 *.dll
-obj/
-[Bb]in/
-[Dd]ebug
-*.suo
-[Rr]elease/

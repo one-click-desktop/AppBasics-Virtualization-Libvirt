@@ -40,7 +40,7 @@ namespace virConnectSetErrorFunc
             {
                 Errors.SetErrorFunc(IntPtr.Zero, ErrorCallback);
                 IntPtr domain = Domain.LookupByName(conn, tbDomainName.Text);
-                DomainInfo di = new DomainInfo();
+                VirDomainInfo di = new VirDomainInfo();
                 Domain.GetInfo(domain, di);
                 textBox1.Text = di.State.ToString();
                 textBox2.Text = di.maxMem.ToString();
@@ -50,17 +50,17 @@ namespace virConnectSetErrorFunc
             }
             else
             {
-                Error error = Errors.GetLastError();
+                VirError error = Errors.GetLastError();
                 ShowError(error);
             }
         }
 
-        private void ErrorCallback(IntPtr userData, Error error)
+        private void ErrorCallback(IntPtr userData, VirError error)
         {
             ShowError(error);
         }
 
-        private void ShowError(Error libvirtError)
+        private void ShowError(VirError libvirtError)
         {
             string ErrorBoxMessage = string.Format("Error number : {0}. Error message : {1}", libvirtError.code, libvirtError.Message);
             MessageBox.Show(ErrorBoxMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);

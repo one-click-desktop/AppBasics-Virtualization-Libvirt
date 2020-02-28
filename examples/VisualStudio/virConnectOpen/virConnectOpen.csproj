@@ -77,7 +77,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\projects\VisualStudio\LibvirtBindings.csproj">
+    <ProjectReference Include="..\..\..\src\LibvirtBindings_VisualStudio.csproj">
       <Project>{592FE0DB-C205-4934-BD20-79BDAB1584C1}</Project>
       <Name>LibvirtBindings</Name>
     </ProjectReference>

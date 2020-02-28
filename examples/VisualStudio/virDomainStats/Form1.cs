@@ -103,7 +103,7 @@ namespace virDomainStats
 
         private void UpdateDomainInfo()
         {
-            DomainInfo domainInfo = new DomainInfo();
+            VirDomainInfo domainInfo = new VirDomainInfo();
             Domain.GetInfo(_domainPtr, domainInfo);
 
             tbState.Text = domainInfo.State.ToString();
@@ -124,7 +124,7 @@ namespace virDomainStats
 
         private void cbBlockDev_SelectedIndexChanged(object sender, EventArgs e)
         {
-            DomainBlockStatsStruct blockStat;
+            VirDomainBlockStatsStruct blockStat;
             Domain.BlockStats(_domainPtr, cbBlockDev.Text, out blockStat);//, Marshal.SizeOf(blockStat));
 
             tbReadRequest.Text = blockStat.rd_req.ToString();
@@ -134,12 +134,12 @@ namespace virDomainStats
             tbErrors.Text = blockStat.errs.ToString();
         }
 
-        private void ErrorCallback(IntPtr userData, Error error)
+        private void ErrorCallback(IntPtr userData, VirError error)
         {
             ShowError(error);
         }
 
-        private void ShowError(Error libvirtError)
+        private void ShowError(VirError libvirtError)
         {
             string ErrorBoxMessage = string.Format("Error number : {0}. Error message : {1}", libvirtError.code, libvirtError.Message);
             MessageBox.Show(ErrorBoxMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -147,7 +147,7 @@ namespace virDomainStats
 
         private void cbInterfaces_SelectedIndexChanged(object sender, EventArgs e)
         {
-            DomainInterfaceStatsStruct interfaceStat;
+            VirDomainInterfaceStatsStruct interfaceStat;
             Domain.InterfaceStats(_domainPtr, cbInterfaces.Text, out interfaceStat);
             tbRxBytes.Text = interfaceStat.rx_bytes.ToString();
             tbRxDrop.Text = interfaceStat.rx_drop.ToString();

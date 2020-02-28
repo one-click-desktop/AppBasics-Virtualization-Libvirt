@@ -51,14 +51,14 @@ namespace virConnectOpenAuth
             IntPtr authDataPtr = Marshal.AllocHGlobal(Marshal.SizeOf(authData));
             Marshal.StructureToPtr(authData, authDataPtr, true);
             // Fill a virConnectAuth structure
-            ConnectAuth auth = new ConnectAuth
+            VirConnectAuth auth = new VirConnectAuth
             {
                 cbdata = authDataPtr,               // The authData structure
                 cb = AuthCallback,                  // the method called by callbacks
                 CredTypes = new[]
                                 {
-                                    ConnectCredentialType.VIR_CRED_AUTHNAME,
-                                    ConnectCredentialType.VIR_CRED_PASSPHRASE
+                                    VirConnectCredentialType.VIR_CRED_AUTHNAME,
+                                    VirConnectCredentialType.VIR_CRED_PASSPHRASE
                                 }          // The list of credentials types
             };
 
@@ -122,19 +122,19 @@ namespace virConnectOpenAuth
             }
         }
 
-        private static int AuthCallback(ref ConnectCredential[] creds, IntPtr cbdata)
+        private static int AuthCallback(ref VirConnectCredential[] creds, IntPtr cbdata)
         {
             AuthData authData = (AuthData)Marshal.PtrToStructure(cbdata, typeof(AuthData));
             for (int i = 0; i < creds.Length; i++)
             {
-                ConnectCredential cred = creds[i];
+                VirConnectCredential cred = creds[i];
                 switch (cred.type)
                 {
-                    case ConnectCredentialType.VIR_CRED_AUTHNAME:
+                    case VirConnectCredentialType.VIR_CRED_AUTHNAME:
                         // Fill the user name
                         cred.Result = authData.user_name;
                         break;
-                    case ConnectCredentialType.VIR_CRED_PASSPHRASE:
+                    case VirConnectCredentialType.VIR_CRED_PASSPHRASE:
                         // Fill the password
                         cred.Result = authData.password;
                         break;
