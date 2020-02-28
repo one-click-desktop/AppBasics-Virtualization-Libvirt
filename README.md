@@ -1,9 +1,7 @@
-== About ==
+# About
 
 This provides some enhancement to the raw bindings provided by 
 Libvirt Bindings (https://libvirt.org/git/?p=libvirt-csharp.git).
-
-== Why ==
 
 Arnaud Champion and Jaromír Červenka have done a wonderful job in providing 
 libvirt bindings for .NET, but we thought it would be useful to have a little 
@@ -19,7 +17,7 @@ code runs fine on mono (tested with mono 6.8 on RHEL 8).
 
 Contributions are highly appreciated.
  
- == Documentation ==
+# Documentation
  
 The following code should give you a head start: 
 
