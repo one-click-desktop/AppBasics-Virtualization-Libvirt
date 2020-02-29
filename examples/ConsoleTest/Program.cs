@@ -229,20 +229,20 @@ namespace ConsoleTest
 
         private static void Connection_DomainEventReceived(object sender, VirDomainEventArgs e)
         {
-            var domain = (LibvirtDomain)sender;
-            Console.WriteLine($"DOMAIN EVENT: {domain.UniqueId} {domain.Name} {e.EventType.ToString()}");
+            var domain = (LibvirtDomain)sender; // Note: this is null on undefined event
+            Console.WriteLine($"EVENT: {e.UniqueId} {domain?.Name} {e.EventType.ToString()}");
         }
 
         private static void Connection_StoragePoolLifecycleEventReceived(object sender, VirStoragePoolLifecycleEventArgs e)
         {
             var storagePool = (LibvirtStoragePool)sender;
-            Console.WriteLine($"STORAGE POOL EVENT: {storagePool.UniqueId} {storagePool.Name} {e.EventType.ToString()}");
+            Console.WriteLine($"STORAGE POOL EVENT: {e.UniqueId} {storagePool?.Name} {e.EventType.ToString()}");
         }
 
         private static void Connection_StoragePoolRefreshEventReceived(object sender, VirStoragePoolRefreshEventArgs e)
         {
             var storagePool = (LibvirtStoragePool)sender;
-            Console.WriteLine($"STORAGE POOL EVENT: {storagePool.UniqueId} {storagePool.Name} REFRESHED");
+            Console.WriteLine($"STORAGE POOL EVENT: {e.UniqueId} {storagePool.Name} REFRESHED");
         }
 
         static void Main(string[] args)
