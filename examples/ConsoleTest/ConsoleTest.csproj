@@ -65,7 +65,7 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="LibvirtBindings.dll.config">
+    <None Include="libvirt-dotnet.dll.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

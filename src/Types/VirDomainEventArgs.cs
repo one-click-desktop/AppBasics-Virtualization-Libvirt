@@ -28,6 +28,8 @@ namespace Libvirt
 {
     public class VirDomainEventArgs : EventArgs
     {
+        public Guid UniqueId { get; internal set; }
+
         public VirDomainEventType EventType { get; internal set; }
 
         public int Detail { get; internal set; }

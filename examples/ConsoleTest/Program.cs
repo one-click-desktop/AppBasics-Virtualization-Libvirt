@@ -227,15 +227,44 @@ namespace ConsoleTest
 
         //static private IntPtr conn = IntPtr.Zero;
 
+        private static void Connection_DomainEventReceived(object sender, VirDomainEventArgs e)
+        {
+            var domain = (LibvirtDomain)sender;
+            Console.WriteLine($"DOMAIN EVENT: {domain.UniqueId} {domain.Name} {e.EventType.ToString()}");
+        }
+
+        private static void Connection_StoragePoolLifecycleEventReceived(object sender, VirStoragePoolLifecycleEventArgs e)
+        {
+            var storagePool = (LibvirtStoragePool)sender;
+            Console.WriteLine($"STORAGE POOL EVENT: {storagePool.UniqueId} {storagePool.Name} {e.EventType.ToString()}");
+        }
+
+        private static void Connection_StoragePoolRefreshEventReceived(object sender, VirStoragePoolRefreshEventArgs e)
+        {
+            var storagePool = (LibvirtStoragePool)sender;
+            Console.WriteLine($"STORAGE POOL EVENT: {storagePool.UniqueId} {storagePool.Name} REFRESHED");
+        }
+
         static void Main(string[] args)
         {
             using (var connection = LibvirtConnection.Open())
             {
                 connection.DomainEventReceived += Connection_DomainEventReceived;
+                connection.StoragePoolLifecycleEventReceived += Connection_StoragePoolLifecycleEventReceived;
+                connection.StoragePoolRefreshEventReceived += Connection_StoragePoolRefreshEventReceived;
 
-                foreach (var domain in connection.ListDomains(includeDefined: true))
+                Console.WriteLine();
+                Console.WriteLine("[DOMAINS]");
+                foreach (var domain in connection.Domains)
                 {
-                    Console.WriteLine($"{domain.UUID} {domain.Name} {domain.State} {domain.OSType}");
+                    Console.WriteLine($"{domain.UniqueId} {domain.Name} {domain.State}");
+                }
+
+                Console.WriteLine();
+                Console.WriteLine("[STORAGE POOLS]");
+                foreach (var domain in connection.StoragePools)
+                {
+                    Console.WriteLine($"{domain.UniqueId} {domain.Name} {domain.State} Capacity={domain.CapacityInByte/1024/1024/1024} GiB");
                 }
 
                 Console.WriteLine();
@@ -399,10 +428,5 @@ namespace ConsoleTest
             //}
         }
 
-        private static void Connection_DomainEventReceived(object sender, VirDomainEventArgs e)
-        {
-            var domain = (LibvirtDomain)sender;
-            Console.WriteLine($"EVENT: {domain.UUID} {domain.Name} {e.EventType.ToString()}");
-        }
     }
 }

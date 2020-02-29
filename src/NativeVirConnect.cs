@@ -492,16 +492,10 @@ namespace Libvirt
         /// Adds a callback to receive notifications of domain lifecycle events occurring on a connection Use of this method is no longer recommended. Instead applications should try virConnectDomainEventRegisterAny which has a more flexible API contract The virDomainPtr object handle passed into the callback upon delivery of an event is only valid for the duration of execution of the callback. If the callback wishes to keep the domain object after the callback
         /// </summary>
         /// <param name="conn">pointer to the connection</param>
-        /// <param name="dom">pointer to the domain or NULL for any</param>
-        /// <param name="eventId">events to listen to</param>
         /// <param name="cb">callback to the function handling domain events</param>
-        /// <param name="opaque">opaque data to pass on to the callback</param>
-        /// <param name="ff">optional function to deallocate opaque when not used anymore</param>
-        /// <returns>t shall take a reference to it, by calling virDomainRef. The reference can be released once the object is no longer required by calling virDomainFree. Returns 0 on success, -1 on failure</returns>
-        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virConnectDomainEventRegisterAny")]
-        public static extern int DomainEventRegisterAny(IntPtr conn, IntPtr dom, int eventId,
-                                                                [MarshalAs(UnmanagedType.FunctionPtr)] VirConnectDomainEventCallback cb,
-                                                                IntPtr opaque, [MarshalAs(UnmanagedType.FunctionPtr)] VirFreeCallback ff);
+        /// <returns>Returns 0 on success, -1 on failure</returns>
+        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virConnectDomainEventDeregister")]
+        public static extern int DomainEventDeregister(IntPtr conn, [MarshalAs(UnmanagedType.FunctionPtr)] VirConnectDomainEventCallback cb);
 
         /// <summary>
         /// Adds a callback to receive notifications of domain lifecycle events occurring on a connection Use of this method is no longer recommended. Instead applications should try virConnectDomainEventRegisterAny which has a more flexible API contract The virDomainPtr object handle passed into the callback upon delivery of an event is only valid for the duration of execution of the callback. If the callback wishes to keep the domain object after the callback
@@ -514,9 +508,48 @@ namespace Libvirt
         /// <param name="ff">optional function to deallocate opaque when not used anymore</param>
         /// <returns>t shall take a reference to it, by calling virDomainRef. The reference can be released once the object is no longer required by calling virDomainFree. Returns 0 on success, -1 on failure</returns>
         [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virConnectDomainEventRegisterAny")]
-        public static extern int StoragePoolEventRegisterAny(IntPtr conn, IntPtr pool, int eventId,
-                                                                [MarshalAs(UnmanagedType.FunctionPtr)] VirConnectStoragePoolEventCallback cb,
+        public static extern int DomainEventRegisterAny(IntPtr conn, IntPtr dom, int eventId,
+                                                                [MarshalAs(UnmanagedType.FunctionPtr)] VirConnectDomainEventCallback cb,
                                                                 IntPtr opaque, [MarshalAs(UnmanagedType.FunctionPtr)] VirFreeCallback ff);
+
+        /// <summary>
+        /// Adds a callback to receive notifications of storage pool events.
+        /// </summary>
+        /// <param name="conn">pointer to the connection</param>
+        /// <param name="dom">pointer to the domain or NULL for any</param>
+        /// <param name="eventId">events to listen to</param>
+        /// <param name="cb">callback to the function handling domain events</param>
+        /// <param name="opaque">opaque data to pass on to the callback</param>
+        /// <param name="ff">optional function to deallocate opaque when not used anymore</param>
+        /// <returns>t shall take a reference to it, by calling virDomainRef. The reference can be released once the object is no longer required by calling virDomainFree. Returns 0 on success, -1 on failure</returns>
+        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virConnectDomainEventRegisterAny")]
+        public static extern int StoragePoolEventRegisterAny(IntPtr conn, IntPtr pool, int eventId,
+                                                                [MarshalAs(UnmanagedType.FunctionPtr)] VirConnectStoragePoolGenericEventCallback cb,
+                                                                IntPtr opaque, [MarshalAs(UnmanagedType.FunctionPtr)] VirFreeCallback ff);
+
+        /// <summary>
+        /// Adds a callback to receive notifications of storage pool events.
+        /// </summary>
+        /// <param name="conn">pointer to the connection</param>
+        /// <param name="dom">pointer to the domain or NULL for any</param>
+        /// <param name="eventId">events to listen to</param>
+        /// <param name="cb">callback to the function handling domain events</param>
+        /// <param name="opaque">opaque data to pass on to the callback</param>
+        /// <param name="ff">optional function to deallocate opaque when not used anymore</param>
+        /// <returns>t shall take a reference to it, by calling virDomainRef. The reference can be released once the object is no longer required by calling virDomainFree. Returns 0 on success, -1 on failure</returns>
+        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virConnectStoragePoolEventRegisterAny")]
+        public static extern int StoragePoolEventRegisterAny(IntPtr conn, IntPtr pool, VirStoragePoolEventID eventId,
+                                                                [MarshalAs(UnmanagedType.FunctionPtr)] VirConnectStoragePoolEventLifecycleCallback cb,
+                                                                IntPtr opaque, [MarshalAs(UnmanagedType.FunctionPtr)] VirFreeCallback ff);
+
+        /// <summary>
+        /// Adds a callback to receive notifications of storage pool events.
+        /// </summary>
+        /// <param name="conn">pointer to the connection</param>
+        /// <param name="callbackId">Callback to deregister</param>
+        /// <returns>Returns 0 on success, -1 on failure</returns>
+        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virConnectStoragePoolEventDeregisterAny ")]
+        public static extern int StoragePoolEventDeregisterAny(IntPtr conn, int callbackId);
 
     }
 }

@@ -32,6 +32,9 @@ namespace Libvirt
     public class LibvirtEventLoop : IDisposable
     {
         private readonly LibvirtConnection _connection;
+        private int _domainEventHandlerRegistrationId = -1;
+        private int _storagePoolLifecycleEventHandlerRegistrationId = -1;
+        private int _storagePoolRefreshEventHandlerRegistrationId = -1;
 
         internal LibvirtEventLoop(LibvirtConnection connection)
         {
@@ -39,11 +42,21 @@ namespace Libvirt
 
             _connection.ShutdownToken.Register(ShutdownEventLoop);
 
-            if (NativeVirConnect.DomainEventRegister(_connection.ConnectionPtr,
-                           DomainEventCallback, IntPtr.Zero, FreeCallbackFunc) < 0)
+            if ((_domainEventHandlerRegistrationId = NativeVirConnect.DomainEventRegister(
+                _connection.ConnectionPtr, DomainEventCallback, IntPtr.Zero, FreeCallbackFunc)) < 0)
                 throw new LibvirtException();
 
-            
+            if ((_storagePoolLifecycleEventHandlerRegistrationId = NativeVirConnect.StoragePoolEventRegisterAny(
+                _connection.ConnectionPtr, IntPtr.Zero, VirStoragePoolEventID.VIR_STORAGE_POOL_EVENT_ID_LIFECYCLE,
+                StoragePoolLifecycleEventCallback, IntPtr.Zero, FreeCallbackFunc)) < 0)
+                throw new LibvirtException();
+
+            if ((_storagePoolRefreshEventHandlerRegistrationId = NativeVirConnect.StoragePoolEventRegisterAny(
+                _connection.ConnectionPtr, IntPtr.Zero,
+               (int)VirStoragePoolEventID.VIR_STORAGE_POOL_EVENT_ID_REFRESH,
+               StoragePoolRefreshEventCallback, IntPtr.Zero, FreeCallbackFunc)) < 0)
+                throw new LibvirtException();
+
             _lvEventLoopTask = Task.Factory.StartNew(EventLoopTask);
         }
 
@@ -88,16 +101,44 @@ namespace Libvirt
 
         private void DomainEventCallback(IntPtr conn, IntPtr dom, VirDomainEventType evt, int detail, IntPtr opaque)
         {
-            Trace.WriteLine($"Received event of type {evt.ToString()}.");
+            Trace.WriteLine($"Received domain event of type {evt.ToString()}.");
 
             var domUUID = new char[16];
             Guid domGuid = Guid.Empty;
-            if (NativeVirDomain.GetUUID(dom, domUUID) < 0 || Guid.Empty.Equals(domGuid = new Guid(domUUID.Select(t => Convert.ToByte(t)).ToArray())))
+            if (NativeVirDomain.GetUUID(dom, domUUID) < 0 || Guid.Empty.Equals(domGuid = domUUID.ToGuid()))
             {
                 Trace.WriteLine($"Received event for unknown domain.");
                 return;
             }
-            _connection.DispatchDomainEvent(domGuid, new VirDomainEventArgs { EventType = evt, Detail = detail });
+            _connection.DispatchDomainEvent(domGuid, new VirDomainEventArgs { UniqueId = domGuid, EventType = evt, Detail = detail });
+        }
+
+        private void StoragePoolLifecycleEventCallback(IntPtr conn, IntPtr pool, VirStoragePoolEventLifecycleType evt, int detail, IntPtr opaque)
+        {
+            Trace.WriteLine($"Received storage pool event of type {evt.ToString()}.");
+
+            var poolUUID = new char[16];
+            Guid poolGuid = Guid.Empty;
+            if (NativeVirStoragePool.GetUUID(pool, poolUUID) < 0 || Guid.Empty.Equals(poolGuid = poolUUID.ToGuid()))
+            {
+                Trace.WriteLine($"Received event for unknown storage pool.");
+                return;
+            }
+            _connection.DispatchStoragePoolEvent(poolGuid, new VirStoragePoolLifecycleEventArgs { UniqueId = poolGuid, EventType = evt, Detail = detail });
+        }
+
+        private void StoragePoolRefreshEventCallback(IntPtr conn, IntPtr pool, IntPtr opaque)
+        {
+            Trace.WriteLine($"Received storage pool refresh event ptr={pool}.");
+
+            var poolUUID = new char[16];
+            Guid poolGuid = Guid.Empty;
+            if (NativeVirStoragePool.GetUUID(pool, poolUUID) < 0 || Guid.Empty.Equals(poolGuid = poolUUID.ToGuid()))
+            {
+                Trace.WriteLine($"Received event for unknown storage pool.");
+                return;
+            }
+            _connection.DispatchStoragePoolEvent(poolGuid, new VirStoragePoolRefreshEventArgs { UniqueId = poolGuid });
         }
 
         #region IDisposable implementation
@@ -111,7 +152,14 @@ namespace Libvirt
             if (Interlocked.CompareExchange(ref _isDisposing, 1, 0) == 1)
                 return;
 
-            // TODO: Unregister from events
+            if (_domainEventHandlerRegistrationId >= 0)
+                NativeVirConnect.DomainEventDeregister(_connection.ConnectionPtr, DomainEventCallback);
+
+            if (_storagePoolLifecycleEventHandlerRegistrationId > 0)
+                NativeVirConnect.StoragePoolEventDeregisterAny(_connection.ConnectionPtr, _storagePoolLifecycleEventHandlerRegistrationId);
+
+            if (_storagePoolRefreshEventHandlerRegistrationId > 0)
+                NativeVirConnect.StoragePoolEventDeregisterAny(_connection.ConnectionPtr, _storagePoolRefreshEventHandlerRegistrationId);
         }
         #endregion
     }

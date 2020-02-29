@@ -34,7 +34,7 @@ namespace Libvirt
     /// <param name="pool">The storage pool on which the event occured</param>
     /// <param name="opaque">opaque user data</param>
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void VirConnectStoragePoolEventCallback(IntPtr conn, IntPtr pool, IntPtr opaque);
+    public delegate void VirConnectStoragePoolGenericEventCallback(IntPtr conn, IntPtr pool, IntPtr opaque);
 
     /// <summary>
     /// A callback function to be registered, and called when a storage event occurs
@@ -43,6 +43,6 @@ namespace Libvirt
     /// <param name="pool">The storage pool on which the event occured</param>
     /// <param name="opaque">opaque user data</param>
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void VirConnectStoragePoolEventLifecycleCallback(IntPtr conn, IntPtr pool, VirStoragePoolEventID eventId, int detail, IntPtr opaque);
+    public delegate void VirConnectStoragePoolEventLifecycleCallback(IntPtr conn, IntPtr pool, VirStoragePoolEventLifecycleType eventId, int detail, IntPtr opaque);
 
 }

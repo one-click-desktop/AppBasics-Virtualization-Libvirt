@@ -39,12 +39,12 @@ namespace Libvirt
         private XmlDocument _xmlDescription = null;
         private readonly object _xmlDescrLock = new object();
 
-        internal LibvirtStoragePool(LibvirtConnection connection, Guid uuid, IntPtr poolPtr)
+        internal LibvirtStoragePool(LibvirtConnection connection, Guid uniqueId, IntPtr poolPtr)
         {
             _conn = connection ?? throw new ArgumentNullException("connection");
-            if (Guid.Empty.Equals(uuid))
+            if (Guid.Empty.Equals(uniqueId))
                 throw new ArgumentNullException("uuid");
-            UUID = uuid;
+            UniqueId = uniqueId;
             if (poolPtr == IntPtr.Zero)
                 throw new ArgumentNullException("poolPtr");
             _poolPtr = poolPtr;
@@ -54,7 +54,7 @@ namespace Libvirt
         /// <summary>
         /// Unique domain identifier
         /// </summary>
-        public Guid UUID { get; private set; }
+        public Guid UniqueId { get; private set; }
 
         /// <summary>
         /// True if the domain is currently active (running).
@@ -148,31 +148,36 @@ namespace Libvirt
         #endregion
 
         #region Events
-        internal void DispatchDomainEvent(VirDomainEventArgs args)
+        internal void DispatchStoragePoolEvent(VirStoragePoolLifecycleEventArgs args)
+        {
+            if (Thread.VolatileRead(ref _isDisposing) != 0)
+                return;
+        }
+
+        internal void DispatchStoragePoolEvent(VirStoragePoolRefreshEventArgs args)
         {
             if (Thread.VolatileRead(ref _isDisposing) != 0)
                 return;
 
-            if (args.EventType == VirDomainEventType.VIR_DOMAIN_EVENT_DEFINED)
-                lock(_xmlDescrLock)
-                    _xmlDescription = null; // Fore re-read of configuration
+            lock (_xmlDescrLock)
+                _xmlDescription = null; // Fore re-read of configuration
         }
         #endregion
 
         #region Object overrides
         public override int GetHashCode()
         {
-            return UUID.GetHashCode();
+            return UniqueId.GetHashCode();
         }
 
         public override bool Equals(object obj)
         {
-            return obj is LibvirtStoragePool && ((LibvirtStoragePool)obj).UUID.Equals(UUID);
+            return obj is LibvirtStoragePool && ((LibvirtStoragePool)obj).UniqueId.Equals(UniqueId);
         }
 
         public override string ToString()
         {
-            return $"{typeof(LibvirtStoragePool).Name} name={Name}, uuid={UUID}, capacity={CapacityInByte}";
+            return $"{typeof(LibvirtStoragePool).Name} name={Name}, uuid={UniqueId}, capacity={CapacityInByte}";
         }
         #endregion
 

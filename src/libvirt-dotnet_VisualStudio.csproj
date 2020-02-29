@@ -3,18 +3,26 @@
     <TargetFrameworks>netstandard2;net4</TargetFrameworks>
     <PackageId>libvirt-dotnet</PackageId>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <Authors>The Livirt-CSharp authors.</Authors>
-    <Company>IDNT</Company>
-    <Product>LibvirtBindings-DOTNET</Product>
+    <Authors>IDNT and the Livirt-CSharp authors.</Authors>
+    <Company>IDNT Europe GmbH</Company>
+    <Product>Libvirt-dotnet</Product>
     <Description>.NET interface to libvirt, the toolkit to manage virtualization platforms like KVM, QEMU, Xen, Virtuozzo, VMWare ESX, LXC and more.</Description>
     <Copyright>The Livirt-CSharp authors.</Copyright>
     <PackageLicenseUrl>https://www.gnu.org/licenses/lgpl-2.1.en.html</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/IDNT/libvirt-csharp</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/IDNT/libvirt-csharp</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/IDNT/libvirt-dotnet</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/IDNT/libvirt-dotnet</RepositoryUrl>
     <PackageTags>libvirt; libvirt-dotnet; kvm; qemu</PackageTags>
-    <PackageReleaseNotes>This is a alpha release. Things may break. YOu have been warned ;-)</PackageReleaseNotes>
+    <PackageReleaseNotes>This is a alpha release. Things may break. You have been warned ;-)</PackageReleaseNotes>
     <AssemblyName>libvirt-dotnet</AssemblyName>
     <RootNamespace>Libvirt</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyVersion>1.0.1.1</AssemblyVersion>
+    <FileVersion>1.0.1.1</FileVersion>
+    <Version>1.0.1</Version>
   </PropertyGroup>
+  <ItemGroup>
+    <None Update="libvirt-dotnet.dll.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

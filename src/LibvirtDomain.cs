@@ -39,12 +39,12 @@ namespace Libvirt
         private XmlDocument _xmlDescription = null;
         private readonly object _xmlDescrLock = new object();
 
-        internal LibvirtDomain(LibvirtConnection connection, Guid uuid, IntPtr domainPtr)
+        internal LibvirtDomain(LibvirtConnection connection, Guid uniqueId, IntPtr domainPtr)
         {
             _conn = connection ?? throw new ArgumentNullException("connection");
-            if (Guid.Empty.Equals(uuid))
-                throw new ArgumentNullException("uuid");
-            UUID = uuid;
+            if (Guid.Empty.Equals(uniqueId))
+                throw new ArgumentNullException("uniqueId");
+            UniqueId = uniqueId;
             if (domainPtr == IntPtr.Zero)
                 throw new ArgumentNullException("domainPtr");
             _domainPtr = domainPtr;
@@ -54,7 +54,7 @@ namespace Libvirt
         /// <summary>
         /// Unique domain identifier
         /// </summary>
-        public Guid UUID { get; private set; }
+        public Guid UniqueId { get; private set; }
 
         /// <summary>
         /// True if the domain is currently active (running).
@@ -132,17 +132,17 @@ namespace Libvirt
         #region Object overrides
         public override int GetHashCode()
         {
-            return UUID.GetHashCode();
+            return UniqueId.GetHashCode();
         }
 
         public override bool Equals(object obj)
         {
-            return obj is LibvirtDomain && ((LibvirtDomain)obj).UUID.Equals(UUID);
+            return obj is LibvirtDomain && ((LibvirtDomain)obj).UniqueId.Equals(UniqueId);
         }
 
         public override string ToString()
         {
-            return $"{typeof(LibvirtDomain).Name} name={Name}, uuid={UUID}, osType={OSType}";
+            return $"{typeof(LibvirtDomain).Name} name={Name}, uuid={UniqueId}, osType={OSType}";
         }
         #endregion
 

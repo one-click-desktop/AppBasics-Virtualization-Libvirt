@@ -26,9 +26,11 @@ using System.Text;
 
 namespace Libvirt
 {
-    public class VirStoragePoolEventArgs : EventArgs
+    public class VirStoragePoolLifecycleEventArgs : EventArgs
     {
-        public VirDomainEventType EventType { get; internal set; }
+        public Guid UniqueId { get; internal set; }
+
+        public VirStoragePoolEventLifecycleType EventType { get; internal set; }
 
         public int Detail { get; internal set; }
     }
