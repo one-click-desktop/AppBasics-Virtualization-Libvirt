@@ -23,8 +23,8 @@ The following code should give you a head start:
 ```c#
 private static void Connection_DomainEventReceived(object sender, VirDomainEventArgs e)
 {
-    var domain = (LibvirtDomain)sender;
-    Console.WriteLine($"EVENT: {domain.UUID} {domain.Name} {e.EventType.ToString()}");
+    var domain = (LibvirtDomain)sender; // Note: this is null on undefined event
+    Console.WriteLine($"EVENT: {e.UniqueId} {domain?.Name} {e.EventType.ToString()}");
 }
 
 static void Main(string[] args)
@@ -33,12 +33,24 @@ static void Main(string[] args)
     {
         connection.DomainEventReceived += Connection_DomainEventReceived;
 
-        foreach (var domain in connection.ListDomains(includeDefined: true))
-        {
-            Console.WriteLine($"{domain.UUID} {domain.Name} {domain.State}");
-        }
+		Console.WriteLine();
+		Console.WriteLine("[DOMAINS]");
+		
+		foreach (var domain in connection.Domains)
+		{
+			Console.WriteLine($"{domain.UniqueId} {domain.Name} {domain.State}");
+		}
+
+		Console.WriteLine();
+		Console.WriteLine("[STORAGE POOLS]");
+		
+		foreach (var domain in connection.StoragePools)
+		{
+			Console.WriteLine($"{domain.UniqueId} {domain.Name} {domain.State} Capacity={domain.CapacityInByte/1024/1024/1024} GiB");
+		}
 
         Console.WriteLine();
+        Console.WriteLine("Waiting for domain lifecycle events...");
         Console.WriteLine("[ENTER] to exit");
         Console.ReadLine();
     }
