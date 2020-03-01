@@ -3,7 +3,7 @@
     <TargetFrameworks>netstandard2;net4</TargetFrameworks>
     <PackageId>libvirt-dotnet</PackageId>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <Authors>IDNT and the Livirt-CSharp authors.</Authors>
+    <Authors>IDNT and the Livirt-dotnet contributors.</Authors>
     <Company>IDNT Europe GmbH</Company>
     <Product>Libvirt-dotnet</Product>
     <Description>.NET interface to libvirt, the toolkit to manage virtualization platforms like KVM, QEMU, Xen, Virtuozzo, VMWare ESX, LXC and more.</Description>
@@ -16,9 +16,9 @@
     <AssemblyName>libvirt-dotnet</AssemblyName>
     <RootNamespace>Libvirt</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>1.0.1.1</AssemblyVersion>
-    <FileVersion>1.0.1.1</FileVersion>
-    <Version>1.0.1</Version>
+    <AssemblyVersion>1.0.1.2</AssemblyVersion>
+    <FileVersion>1.0.1.2</FileVersion>
+    <Version>1.0.2</Version>
   </PropertyGroup>
   <ItemGroup>
     <None Update="libvirt-dotnet.dll.config">
