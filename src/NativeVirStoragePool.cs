@@ -225,6 +225,20 @@ namespace Libvirt
             GetUUIDString(pool, uuidArray);
             return new string(uuidArray);
         }
+
+        /// <summary>
+        /// Fetch the globally unique key of the volume
+        /// </summary>
+        /// <param name="pool">
+        /// A <see cref="IntPtr"/>pointer to volume.
+        /// </param>
+        /// <returns>
+        /// key or null if not found
+        /// </returns>
+        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virStorageVolGetKey")]
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringWithoutNativeCleanUpMarshaler))]
+        public static extern string GetVolKey(IntPtr volume);
+
         /// <summary>
         /// Fetch an XML document describing all aspects of the storage pool.
         /// This is suitable for later feeding back into the virStoragePoolCreateXML method.
@@ -321,6 +335,21 @@ namespace Libvirt
         /// </returns>
         [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virStoragePoolLookupByName")]
         public static extern IntPtr LookupByName(IntPtr conn, string name);
+
+        /// <summary>
+        /// Fetch a storage pool volume based on its unique name.
+        /// </summary>
+        /// <param name="conn">
+        /// A <see cref="IntPtr"/>pointer to storage pool
+        /// </param>
+        /// <param name="name">
+        /// Name of volume to fetch.
+        /// </param>
+        /// <returns>
+        /// A <see cref="IntPtr"/>virStorageVolPtr object, or NULL if no matching volume was found.
+        /// </returns>
+        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virStorageVolLookupByName")]
+        public static extern IntPtr LookupVolByName(IntPtr pool, string name);
 
         /// <summary>
         /// Fetch a storage pool based on its globally unique id.

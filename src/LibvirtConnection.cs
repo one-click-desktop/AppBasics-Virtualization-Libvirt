@@ -48,7 +48,7 @@ namespace Libvirt
         public LibvirtConnection(IntPtr conn)
         {
             if (conn == IntPtr.Zero)
-                throw new LibvirtConnectionErrorException();
+                throw new LibvirtConnectionException();
             _connPtr = conn;
 
             _closeTokenSource = new CancellationTokenSource();
@@ -62,7 +62,7 @@ namespace Libvirt
         public void SetKeepAlive(int interval, uint count)
         {
             if (NativeVirConnect.SetKeepAlive(_connPtr, interval, count) < 0)
-                throw new LibvirtConnectionErrorException();
+                throw new LibvirtConnectionException();
         }
 
         #endregion
@@ -81,18 +81,26 @@ namespace Libvirt
             int nbDomains = NativeVirConnect.NumOfDomains(_connPtr);
             int[] domainIDs = new int[nbDomains];
             if (NativeVirConnect.ListDomains(_connPtr, domainIDs, nbDomains) < 0)
-                throw new LibvirtQueryFailedException();
+                throw new LibvirtQueryException();
 
             foreach (IntPtr domainPtr in domainIDs.Select(domainID => NativeVirDomain.LookupByID(_connPtr, domainID)))
             {
-                var domUUID = new char[16];
-                if (NativeVirDomain.GetUUID(domainPtr, domUUID) < 0)
-                    throw new LibvirtQueryFailedException();
-
-                yield return _domainCache.GetOrAdd(domUUID.ToGuid(), (id) =>
+                try
                 {
-                    return new LibvirtDomain(this, domUUID.ToGuid(), domainPtr);
-                });
+                    var domUUID = new char[16];
+                    if (NativeVirDomain.GetUUID(domainPtr, domUUID) < 0)
+                        throw new LibvirtQueryException();
+
+                    yield return _domainCache.GetOrAdd(domUUID.ToGuid(), (id) =>
+                    {
+                        NativeVirDomain.Ref(domainPtr);
+                        return new LibvirtDomain(this, domUUID.ToGuid(), domainPtr);
+                    });
+                }
+                finally
+                {
+                    NativeVirDomain.Free(domainPtr);
+                }
             }
 
             if (includeDefined)
@@ -100,18 +108,26 @@ namespace Libvirt
                 nbDomains = NativeVirConnect.NumOfDefinedDomains(_connPtr);
                 string[] domainNames = new string[nbDomains];
                 if (NativeVirConnect.ListDefinedDomains(_connPtr, ref domainNames, nbDomains) < 0)
-                    throw new LibvirtQueryFailedException();
+                    throw new LibvirtQueryException();
 
                 foreach (IntPtr domainPtr in domainNames.Select(domainName => NativeVirDomain.LookupByName(_connPtr, domainName)))
                 {
-                    var domUUID = new char[16];
-                    if (NativeVirDomain.GetUUID(domainPtr, domUUID) < 0)
-                        throw new LibvirtQueryFailedException();
-
-                    yield return _domainCache.GetOrAdd(domUUID.ToGuid(), (id) =>
+                    try
                     {
-                        return new LibvirtDomain(this, domUUID.ToGuid(), domainPtr);
-                    });
+                        var domUUID = new char[16];
+                        if (NativeVirDomain.GetUUID(domainPtr, domUUID) < 0)
+                            throw new LibvirtQueryException();
+
+                        yield return _domainCache.GetOrAdd(domUUID.ToGuid(), (id) =>
+                        {
+                            NativeVirDomain.Ref(domainPtr);
+                            return new LibvirtDomain(this, domUUID.ToGuid(), domainPtr);
+                        });
+                    }
+                    finally
+                    {
+                        NativeVirDomain.Free(domainPtr);
+                    }
                 }
             }
         }
@@ -121,16 +137,15 @@ namespace Libvirt
         /// </summary>
         /// <param name="uniqueId">Domains unique id</param>
         /// <returns>Domain or NULL</returns>
-        public LibvirtDomain GetDomainByUUID(Guid uniqueId, bool cachedOnly = false)
+        public LibvirtDomain GetDomainByUniqueId(Guid uniqueId, bool cachedOnly = false)
         {
             LibvirtDomain domain;
-            if (cachedOnly)
-            {
-                if (_domainCache.TryGetValue(uniqueId, out domain))
-                    return domain;
-                return null;
-            }
+            if (_domainCache.TryGetValue(uniqueId, out domain))
+                return domain;
 
+            if (cachedOnly)
+                return null;
+            
             var domainPtr = NativeVirDomain.LookupByUUID(_connPtr, uniqueId.ToUUID());
             if (domainPtr == IntPtr.Zero)
             {
@@ -141,10 +156,18 @@ namespace Libvirt
                 return null;
             }
 
-            return _domainCache.GetOrAdd(uniqueId, (id) =>
+            try
             {
-                return new LibvirtDomain(this, uniqueId, domainPtr);
-            });
+                return _domainCache.GetOrAdd(uniqueId, (id) =>
+                {
+                    NativeVirDomain.Ref(domainPtr);
+                    return new LibvirtDomain(this, uniqueId, domainPtr);
+                });
+            }
+            finally
+            {
+                NativeVirDomain.Free(domainPtr);
+            }
         }
 
         /// <summary>
@@ -161,14 +184,22 @@ namespace Libvirt
                 return null;
             }
 
-            var domUUID = new char[16];
-            if (NativeVirDomain.GetUUID(domainPtr, domUUID) < 0)
-                throw new LibvirtQueryFailedException();
-
-            return _domainCache.GetOrAdd(domUUID.ToGuid(), (id) =>
+            try
             {
-                return new LibvirtDomain(this, domUUID.ToGuid(), domainPtr);
-            });
+                var domUUID = new char[16];
+                if (NativeVirDomain.GetUUID(domainPtr, domUUID) < 0)
+                    throw new LibvirtQueryException();
+
+                return _domainCache.GetOrAdd(domUUID.ToGuid(), (id) =>
+                {
+                    NativeVirDomain.Ref(domainPtr);
+                    return new LibvirtDomain(this, domUUID.ToGuid(), domainPtr);
+                });
+            }
+            finally
+            {
+                NativeVirDomain.Free(domainPtr);
+            }
         }
 
         /// <summary>
@@ -185,14 +216,22 @@ namespace Libvirt
                 return null;
             }
 
-            var domUUID = new char[16];
-            if (NativeVirDomain.GetUUID(domainPtr, domUUID) < 0)
-                throw new LibvirtQueryFailedException();
-
-            return _domainCache.GetOrAdd(domUUID.ToGuid(), (id) =>
+            try
             {
-                return new LibvirtDomain(this, domUUID.ToGuid(), domainPtr);
-            });
+                var domUUID = new char[16];
+                if (NativeVirDomain.GetUUID(domainPtr, domUUID) < 0)
+                    throw new LibvirtQueryException();
+
+                return _domainCache.GetOrAdd(domUUID.ToGuid(), (id) =>
+                {
+                    NativeVirDomain.Ref(domainPtr);
+                    return new LibvirtDomain(this, domUUID.ToGuid(), domainPtr);
+                });
+            }
+            finally
+            {
+                NativeVirDomain.Free(domainPtr);
+            }
         }
 
         /// <summary>
@@ -204,7 +243,7 @@ namespace Libvirt
         }
 
         #region Events
-        private object _domainEventReceivedLock = new object();
+        private readonly object _domainEventReceivedLock = new object();
         private event EventHandler<VirDomainEventArgs> _domainEventHandler;
 
         public event EventHandler<VirDomainEventArgs> DomainEventReceived
@@ -218,7 +257,7 @@ namespace Libvirt
             if (Thread.VolatileRead(ref _isDisposing) != 0)
                 return;
 
-            LibvirtDomain domain = GetDomainByUUID(uniqueId,
+            LibvirtDomain domain = GetDomainByUniqueId(uniqueId,
                 cachedOnly: args.EventType == VirDomainEventType.VIR_DOMAIN_EVENT_UNDEFINED);
             
             domain?.DispatchDomainEvent(args);
@@ -256,18 +295,26 @@ namespace Libvirt
             int nbPools = NativeVirConnect.NumOfStoragePools(_connPtr);
             string[] poolNames = new string[nbPools];
             if (NativeVirConnect.ListStoragePools(_connPtr, ref poolNames, nbPools) < 0)
-                throw new LibvirtQueryFailedException();
+                throw new LibvirtQueryException();
 
             foreach (IntPtr poolPtr in poolNames.Select(poolName => NativeVirStoragePool.LookupByName(_connPtr, poolName)))
             {
-                var poolUUID = new char[16];
-                if (NativeVirStoragePool.GetUUID(poolPtr, poolUUID) < 0)
-                    throw new LibvirtQueryFailedException();
-
-                yield return _storagePoolCache.GetOrAdd(poolUUID.ToGuid(), (id) =>
+                try
                 {
-                    return new LibvirtStoragePool(this, poolUUID.ToGuid(), poolPtr);
-                });
+                    var poolUUID = new char[16];
+                    if (NativeVirStoragePool.GetUUID(poolPtr, poolUUID) < 0)
+                        throw new LibvirtQueryException();
+
+                    yield return _storagePoolCache.GetOrAdd(poolUUID.ToGuid(), (id) =>
+                    {
+                        NativeVirStoragePool.Ref(poolPtr);
+                        return new LibvirtStoragePool(this, poolUUID.ToGuid(), poolPtr);
+                    });
+                }
+                finally
+                {
+                    NativeVirStoragePool.Free(poolPtr);
+                }
             }
 
             if (includeDefined)
@@ -275,18 +322,26 @@ namespace Libvirt
                 nbPools = NativeVirConnect.NumOfDefinedStoragePools(_connPtr);
                 poolNames = new string[nbPools];
                 if (NativeVirConnect.ListDefinedStoragePools(_connPtr, ref poolNames, nbPools) < 0)
-                    throw new LibvirtQueryFailedException();
+                    throw new LibvirtQueryException();
 
                 foreach (IntPtr poolPtr in poolNames.Select(poolName => NativeVirStoragePool.LookupByName(_connPtr, poolName)))
                 {
-                    var poolUUID = new char[16];
-                    if (NativeVirStoragePool.GetUUID(poolPtr, poolUUID) < 0)
-                        throw new LibvirtQueryFailedException();
-
-                    yield return _storagePoolCache.GetOrAdd(poolUUID.ToGuid(), (id) =>
+                    try
                     {
-                        return new LibvirtStoragePool(this, poolUUID.ToGuid(), poolPtr);
-                    });
+                        var poolUUID = new char[16];
+                        if (NativeVirStoragePool.GetUUID(poolPtr, poolUUID) < 0)
+                            throw new LibvirtQueryException();
+
+                        yield return _storagePoolCache.GetOrAdd(poolUUID.ToGuid(), (id) =>
+                        {
+                            NativeVirStoragePool.Ref(poolPtr);
+                            return new LibvirtStoragePool(this, poolUUID.ToGuid(), poolPtr);
+                        });
+                    }
+                    finally
+                    {
+                        NativeVirStoragePool.Free(poolPtr);
+                    }
                 }
             }
         }
@@ -296,15 +351,14 @@ namespace Libvirt
         /// </summary>
         /// <param name="uniqueId">Storage pools unique id</param>
         /// <returns>Storage pool or NULL</returns>
-        public LibvirtStoragePool GetStoragePoolByUUID(Guid uniqueId, bool cachedOnly = false)
+        public LibvirtStoragePool GetStoragePoolByUniqueId(Guid uniqueId, bool cachedOnly = false)
         {
             LibvirtStoragePool pool;
+            if (_storagePoolCache.TryGetValue(uniqueId, out pool))
+                return pool;
+
             if (cachedOnly)
-            {
-                if (_storagePoolCache.TryGetValue(uniqueId, out pool))
-                    return pool;
                 return null;
-            }
 
             var poolPtr = NativeVirStoragePool.LookupByUUID(_connPtr, uniqueId.ToUUID());
             if (poolPtr == IntPtr.Zero)
@@ -316,10 +370,18 @@ namespace Libvirt
                 return null;
             }
 
-            return _storagePoolCache.GetOrAdd(uniqueId, (id) =>
+            try
             {
-                return new LibvirtStoragePool(this, uniqueId, poolPtr);
-            });
+                return _storagePoolCache.GetOrAdd(uniqueId, (id) =>
+                {
+                    NativeVirStoragePool.Ref(poolPtr);
+                    return new LibvirtStoragePool(this, uniqueId, poolPtr);
+                });
+            }
+            finally
+            {
+                NativeVirStoragePool.Free(poolPtr);
+            }
         }
 
         /// <summary>
@@ -335,15 +397,22 @@ namespace Libvirt
                 Trace.WriteLine($"Could not find storage pool with name '{poolName}'.");
                 return null;
             }
-
-            var poolUUID = new char[16];
-            if (NativeVirStoragePool.GetUUID(poolPtr, poolUUID) < 0)
-                throw new LibvirtQueryFailedException();
-
-            return _storagePoolCache.GetOrAdd(poolUUID.ToGuid(), (id) =>
+            try
             {
-                return new LibvirtStoragePool(this, poolUUID.ToGuid(), poolPtr);
-            });
+                var poolUUID = new char[16];
+                if (NativeVirStoragePool.GetUUID(poolPtr, poolUUID) < 0)
+                    throw new LibvirtQueryException();
+
+                return _storagePoolCache.GetOrAdd(poolUUID.ToGuid(), (id) =>
+                {
+                    NativeVirStoragePool.Ref(poolPtr);
+                    return new LibvirtStoragePool(this, poolUUID.ToGuid(), poolPtr);
+                });
+            }
+            finally
+            {
+                NativeVirStoragePool.Free(poolPtr);
+            }
         }
 
         /// <summary>
@@ -355,7 +424,7 @@ namespace Libvirt
         }
 
         #region Events
-        private object _storagePoolLifecycleEventReceivedLock = new object();
+        private readonly object _storagePoolLifecycleEventReceivedLock = new object();
         private event EventHandler<VirStoragePoolLifecycleEventArgs> _storagePoolLifecycleEventHandler;
 
         public event EventHandler<VirStoragePoolLifecycleEventArgs> StoragePoolLifecycleEventReceived
@@ -364,7 +433,7 @@ namespace Libvirt
             remove { lock (_storagePoolLifecycleEventReceivedLock) _storagePoolLifecycleEventHandler -= value; }
         }
 
-        private object _storagePoolRefreshEventReceivedLock = new object();
+        private readonly object _storagePoolRefreshEventReceivedLock = new object();
         private event EventHandler<VirStoragePoolRefreshEventArgs> _storagePoolRefreshEventHandler;
 
         public event EventHandler<VirStoragePoolRefreshEventArgs> StoragePoolRefreshEventReceived
@@ -378,7 +447,7 @@ namespace Libvirt
             if (Thread.VolatileRead(ref _isDisposing) != 0)
                 return;
 
-            LibvirtStoragePool pool = GetStoragePoolByUUID(uniqueId,
+            LibvirtStoragePool pool = GetStoragePoolByUniqueId(uniqueId,
                 cachedOnly: args.EventType == VirStoragePoolEventLifecycleType.VIR_STORAGE_POOL_EVENT_UNDEFINED);
 
             pool?.DispatchStoragePoolEvent(args);
@@ -404,7 +473,7 @@ namespace Libvirt
             if (Thread.VolatileRead(ref _isDisposing) != 0)
                 return;
 
-            LibvirtStoragePool pool = GetStoragePoolByUUID(uniqueId);
+            LibvirtStoragePool pool = GetStoragePoolByUniqueId(uniqueId);
 
             pool?.DispatchStoragePoolEvent(args);
 
@@ -417,6 +486,91 @@ namespace Libvirt
         }
         #endregion
 
+        #endregion
+
+        #region Storage Volumes
+        private readonly ConcurrentDictionary<string, LibvirtStorageVolume> _storageVolumeCache =
+                new ConcurrentDictionary<string, LibvirtStorageVolume>();
+
+        internal ConcurrentDictionary<string, LibvirtStorageVolume> VolumeCache => _storageVolumeCache;
+
+        public IEnumerable<LibvirtStorageVolume> ListStorageVolumes()
+        {
+            foreach (var volume in this.StoragePools.SelectMany(x => x.Volumes))
+                yield return volume;
+        }
+
+        public IEnumerable<LibvirtStorageVolume> StorageVolumes
+        {
+            get { return ListStorageVolumes(); }
+        }
+
+        /// <summary>
+        /// Get a volume by name
+        /// </summary>
+        /// <param name="volumeKey">Volume key</param>
+        /// <returns>Volume or NULL</returns>
+        public LibvirtStorageVolume GetVolumeByKey(string volumeKey, bool cachedOnly = false)
+        {
+            if (string.IsNullOrEmpty(volumeKey))
+                throw new ArgumentNullException("volumeKey");
+
+            Trace.WriteLine($"GetVolumeByKey('{volumeKey}', {cachedOnly})");
+
+            LibvirtStorageVolume volume;
+            if (cachedOnly)
+            {
+                if (_storageVolumeCache.TryGetValue(volumeKey, out volume))
+                    return volume;
+                return null;
+            }
+
+            var volumePtr = NativeVirStorageVol.LookupByKey(_connPtr, volumeKey);
+            if (volumePtr == IntPtr.Zero)
+            {
+                if (_storageVolumeCache.TryRemove(volumeKey, out volume))
+                    volume.Dispose();
+
+                Trace.WriteLine($"Could not find volume with key '{volumeKey}'.");
+                return null;
+            }
+
+            try
+            {
+                var poolPtr = NativeVirStoragePool.LookupByVolume(volumePtr);
+                if (poolPtr == IntPtr.Zero)
+                    throw new LibvirtQueryException();
+
+                try
+                {
+                    var poolUUID = new char[16];
+                    if (NativeVirStoragePool.GetUUID(poolPtr, poolUUID) < 0)
+                        throw new LibvirtQueryException();
+
+                    return _storageVolumeCache.GetOrAdd(volumeKey, (id) =>
+                    {
+                        NativeVirStorageVol.Ref(volumePtr);
+                        return new LibvirtStorageVolume(this, poolUUID.ToGuid(), volumeKey, volumePtr);
+                    });
+                }
+                finally
+                {
+                    NativeVirStoragePool.Free(poolPtr);
+                }
+            }
+            finally
+            {
+                NativeVirStorageVol.Free(volumePtr);
+            }
+        }
+
+        public LibvirtStorageVolume GetVolumeByDiskSource(VirXmlDomainDiskSource diskSource)
+        {
+            if (diskSource == null)
+                return null;
+
+            return GetVolumeByKey(diskSource.GetKey());
+        }
         #endregion
 
         #region Static
@@ -479,6 +633,11 @@ namespace Libvirt
                 domain.Dispose();
 
             _domainCache.Clear();
+
+            foreach (var storageVolume in _storageVolumeCache.Values)
+                storageVolume.Dispose();
+
+            _storageVolumeCache.Clear();
 
             foreach (var storagePool in _storagePoolCache.Values)
                 storagePool.Dispose();

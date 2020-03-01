@@ -37,16 +37,16 @@ namespace Libvirt
         /// virStorageVolType flags.
         /// </summary>
         [MarshalAs(UnmanagedType.I4)]
-        public VirStorageVolType type;
+        public VirStorageVolType Type;
         /// <summary>
         /// Logical size bytes.
         /// </summary>
         [MarshalAs(UnmanagedType.U8)]
-        public ulong capacity;
+        public ulong Capacity;
         /// <summary>
         /// Current allocation bytes.
         /// </summary>
         [MarshalAs(UnmanagedType.U8)]
-        public ulong allocation;
+        public ulong Allocation;
     }
 }

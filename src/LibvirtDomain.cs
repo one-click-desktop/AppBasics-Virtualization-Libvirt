@@ -26,6 +26,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Xml;
+using System.Xml.Serialization;
 
 namespace Libvirt
 {
@@ -104,15 +105,42 @@ namespace Libvirt
                     {
                         if (_xmlDescription == null)
                         {
-                            string xmlText = NativeVirDomain.GetXMLDesc(_domainPtr, VirDomainXMLFlags.VIR_DOMAIN_XML_SECURE | VirDomainXMLFlags.VIR_DOMAIN_XML_INACTIVE);
+                            string xmlText = NativeVirDomain.GetXMLDesc(_domainPtr, 
+                                VirDomainXMLFlags.VIR_DOMAIN_XML_SECURE | VirDomainXMLFlags.VIR_DOMAIN_XML_INACTIVE);
                             if (string.IsNullOrWhiteSpace(xmlText))
-                                throw new LibvirtQueryFailedException();
+                                throw new LibvirtQueryException();
                             _xmlDescription = new XmlDocument();
                             _xmlDescription.LoadXml(xmlText);
                         }
                     }
                 }
                 return _xmlDescription;
+            }
+        }
+
+        public IEnumerable<VirXmlDomainDisk> DiskDevices
+        {
+            get
+            {
+                XmlNodeList devNodeList = XmlDescription.SelectNodes("//domain/devices/disk");
+
+                XmlSerializer serializer = new XmlSerializer(typeof(VirXmlDomainDisk), defaultNamespace:"");
+                foreach (XmlNode devNode in devNodeList)
+                    using (var reader = new XmlNodeReader(devNode))
+                        yield return (VirXmlDomainDisk)serializer.Deserialize(reader);
+            }
+        }
+
+        public IEnumerable<VirXmlDomainGraphics> GraphicsDevices
+        {
+            get
+            {
+                XmlNodeList devNodeList = XmlDescription.SelectNodes("//domain/devices/grpahics");
+
+                XmlSerializer serializer = new XmlSerializer(typeof(VirXmlDomainGraphics), defaultNamespace: "");
+                foreach (XmlNode devNode in devNodeList)
+                    using (var reader = new XmlNodeReader(devNode))
+                        yield return (VirXmlDomainGraphics)serializer.Deserialize(reader);
             }
         }
         #endregion

@@ -38,22 +38,22 @@ namespace Libvirt
         Empty = 0,
 
         /// <summary>
-        /// (0x1; 1 << 0) dump security sensitive information too
+        /// dump security sensitive information too
         /// </summary>
         VIR_DOMAIN_XML_SECURE = 1,
 
         /// <summary>
-        /// 
+        /// dump inactive domain information
         /// </summary>
         VIR_DOMAIN_XML_INACTIVE = 2,
 
         /// <summary>
-        /// (0x2; 1 << 1) dump inactive domain information
+        /// update guest CPU requirements according to host CPU
         /// </summary>
         VIR_DOMAIN_XML_UPDATE_CPU = 4,
 
         /// <summary>
-        /// (0x4; 1 << 2) update guest CPU requirements according to host CPU
+        /// (0x4; 1 << 2) 
         /// </summary>
         VIR_DOMAIN_XML_MIGRATABLE = 8 
     }

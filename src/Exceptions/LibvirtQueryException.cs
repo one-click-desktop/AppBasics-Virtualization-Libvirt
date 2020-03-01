@@ -29,9 +29,9 @@ namespace Libvirt
     /// <summary>
     /// Fired on connection errors
     /// </summary>
-    public class LibvirtQueryFailedException : LibvirtException
+    public class LibvirtQueryException : LibvirtException
     {
-        public LibvirtQueryFailedException() : base()
+        public LibvirtQueryException() : base()
         { }
     }
 }

@@ -258,14 +258,16 @@ namespace ConsoleTest
                 foreach (var domain in connection.Domains)
                 {
                     Console.WriteLine($"{domain.UniqueId} {domain.Name} {domain.State}");
+                    foreach (var disk in domain.DiskDevices)
+                        Console.WriteLine(connection.GetVolumeByDiskSource(disk.Source));
                 }
 
-                Console.WriteLine();
-                Console.WriteLine("[STORAGE POOLS]");
-                foreach (var domain in connection.StoragePools)
-                {
-                    Console.WriteLine($"{domain.UniqueId} {domain.Name} {domain.State} Capacity={domain.CapacityInByte/1024/1024/1024} GiB");
-                }
+                //Console.WriteLine();
+                //Console.WriteLine("[STORAGE VOLUMES]");
+                //foreach (var volume in connection.StorageVolumes)
+                //{
+                //    Console.WriteLine($"{volume.Name} [{volume.Key}] (Type={volume.VolumeType}, Capacity={volume.CapacityInByte / 1024 / 1024 / 1024} GiB, Pool={volume.StoragePool.Name}");
+                //}
 
                 Console.WriteLine();
                 Console.WriteLine("[ENTER] to exit");

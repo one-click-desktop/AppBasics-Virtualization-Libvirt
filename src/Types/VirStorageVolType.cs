@@ -38,6 +38,22 @@ namespace Libvirt
         /// <summary>
         /// Block based volumes.
         /// </summary>
-        VIR_STORAGE_VOL_BLOCK = 1
+        VIR_STORAGE_VOL_BLOCK = 1,
+        /// <summary>
+        /// Directory-passthrough based volume
+        /// </summary>
+        VIR_STORAGE_VOL_DIR = 2,
+        /// <summary>
+        /// Network volumes like RBD (RADOS Block Device)
+        /// </summary>
+        VIR_STORAGE_VOL_NETWORK = 3,
+        /// <summary>
+        /// Network accessible directory that can contain other network volumes
+        /// </summary>
+        VIR_STORAGE_VOL_NETDIR = 4,
+        /// <summary>
+        /// Ploop based volumes
+        /// </summary>
+        VIR_STORAGE_VOL_PLOOP = 5
     }
 }

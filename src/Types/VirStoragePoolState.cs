@@ -47,5 +47,9 @@ namespace Libvirt
         /// Running degraded.
         /// </summary>
         VIR_STORAGE_POOL_DEGRADED = 3,
+        /// <summary>
+        /// Running, but not accessible
+        /// </summary>
+        VIR_STORAGE_POOL_INACCESSIBLE = 4
     }
 }

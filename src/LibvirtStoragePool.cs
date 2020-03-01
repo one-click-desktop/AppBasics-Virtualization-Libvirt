@@ -20,6 +20,7 @@
  * limitations under the License.
  */
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -30,7 +31,7 @@ using System.Xml;
 namespace Libvirt
 {
     /// <summary>
-    /// Represents a libvirt domain
+    /// Represents a libvirt storage pool
     /// </summary>
     public class LibvirtStoragePool : IDisposable
     {
@@ -75,7 +76,7 @@ namespace Libvirt
             {
                 VirStoragePoolInfo poolInfo = new VirStoragePoolInfo();
                 if (NativeVirStoragePool.GetInfo(_poolPtr, ref poolInfo) < 0)
-                    throw new LibvirtQueryFailedException();
+                    throw new LibvirtQueryException();
                 return poolInfo.State;
             }
         }
@@ -89,7 +90,7 @@ namespace Libvirt
             {
                 VirStoragePoolInfo poolInfo = new VirStoragePoolInfo();
                 if (NativeVirStoragePool.GetInfo(_poolPtr, ref poolInfo) < 0)
-                    throw new LibvirtQueryFailedException();
+                    throw new LibvirtQueryException();
                 return poolInfo.Capacity;
             }
         }
@@ -103,7 +104,7 @@ namespace Libvirt
             {
                 VirStoragePoolInfo poolInfo = new VirStoragePoolInfo();
                 if (NativeVirStoragePool.GetInfo(_poolPtr, ref poolInfo) < 0)
-                    throw new LibvirtQueryFailedException();
+                    throw new LibvirtQueryException();
                 return poolInfo.Available;
             }
         }
@@ -117,7 +118,7 @@ namespace Libvirt
             {
                 VirStoragePoolInfo poolInfo = new VirStoragePoolInfo();
                 if (NativeVirStoragePool.GetInfo(_poolPtr, ref poolInfo) < 0)
-                    throw new LibvirtQueryFailedException();
+                    throw new LibvirtQueryException();
                 return poolInfo.Allocation;
             }
         }
@@ -136,7 +137,7 @@ namespace Libvirt
                         {
                             string xmlText = NativeVirStoragePool.GetXMLDesc(_poolPtr, VirDomainXMLFlags.VIR_DOMAIN_XML_SECURE | VirDomainXMLFlags.VIR_DOMAIN_XML_INACTIVE);
                             if (string.IsNullOrWhiteSpace(xmlText))
-                                throw new LibvirtQueryFailedException();
+                                throw new LibvirtQueryException();
                             _xmlDescription = new XmlDocument();
                             _xmlDescription.LoadXml(xmlText);
                         }
@@ -144,6 +145,80 @@ namespace Libvirt
                 }
                 return _xmlDescription;
             }
+        }
+        #endregion
+
+        #region Volumes
+        /// <summary>
+        /// Queries volumes
+        /// </summary>
+        /// <returns>List of volumes</returns>
+        public IEnumerable<LibvirtStorageVolume> ListVolumes()
+        {
+            int nbVolumes = NativeVirStoragePool.NumOfVolumes(_poolPtr);
+            string[] volumeNames = new string[nbVolumes];
+            if (NativeVirStoragePool.ListVolumes(_poolPtr, ref volumeNames, nbVolumes) < 0)
+                throw new LibvirtQueryException();
+
+            foreach (IntPtr volumePtr in volumeNames.Select(volumeName => NativeVirStorageVol.LookupByName(_poolPtr, volumeName)))
+            {
+                try
+                {
+                    string keyString = NativeVirStorageVol.GetKey(volumePtr);
+                    if (string.IsNullOrEmpty(keyString))
+                        throw new LibvirtQueryException();
+
+                    yield return _conn.VolumeCache.GetOrAdd(keyString, (id) =>
+                    {
+                        NativeVirStorageVol.Ref(volumePtr);
+                        return new LibvirtStorageVolume(_conn, UniqueId, keyString, volumePtr);
+                    });
+                }
+                finally
+                {
+                    NativeVirStorageVol.Free(volumePtr);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Get a volume by name
+        /// </summary>
+        /// <param name="volumeName">Volume name</param>
+        /// <returns>Volume or NULL</returns>
+        public LibvirtStorageVolume GetVolumeByName(string volumeName)
+        {
+            var volumePtr = NativeVirStorageVol.LookupByName(_poolPtr, volumeName);
+            if (volumePtr == IntPtr.Zero)
+            {
+                Trace.WriteLine($"Could not find volume with name '{volumeName}'.");
+                return null;
+            }
+
+            try
+            {
+                string keyString = NativeVirStorageVol.GetKey(volumePtr);
+                if (string.IsNullOrEmpty(keyString))
+                    throw new LibvirtQueryException();
+
+                return _conn.VolumeCache.GetOrAdd(keyString, (id) =>
+                {
+                    NativeVirStorageVol.Ref(volumePtr);
+                    return new LibvirtStorageVolume(_conn, UniqueId, keyString, volumePtr);
+                });
+            }
+            finally
+            {
+                NativeVirStorageVol.Free(volumePtr);
+            }
+        }
+
+        /// <summary>
+        /// Enumerates all running as well as defined domains
+        /// </summary>
+        public IEnumerable<LibvirtStorageVolume> Volumes
+        {
+            get { return ListVolumes(); }
         }
         #endregion
 
