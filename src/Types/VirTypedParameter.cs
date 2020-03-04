@@ -24,38 +24,45 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
-using System.Xml.Serialization;
 
 namespace Libvirt
 {
-    [Serializable]
-    [XmlRoot(ElementName = "graphics", Namespace = "")]
-    public class VirXmlDomainGraphics
+    [StructLayout(LayoutKind.Sequential)]
+    public struct VirTypedParameter
     {
-        [XmlAttribute(AttributeName = "type")]
-        public VirXmlDomainGraphicsType Type { get; set; }
-
-        [XmlAttribute(AttributeName = "listen")]
-        public string Listen { get; set; }
-
-        [XmlAttribute(AttributeName = "port")]
-        public int Port { get; set; }
-
-        [XmlAttribute(AttributeName = "autoport")]
-        private string _autoport { get; set; }
-
-        [XmlIgnore]
-        public bool IsAutoPort {  get { return string.Equals("yes", _autoport); } }
-
-        public string ToString(string address = null)
+        [StructLayout(LayoutKind.Explicit)]
+        public struct _VALUEUNION
         {
-            return $"{Type.ToString().ToLower()}://{address ?? Listen}:{Port}";
+            [FieldOffset(0)]
+            public Int32 IntValue;
+
+            [FieldOffset(0)]
+            public UInt32 UIntValue;
+
+            [FieldOffset(0)]
+            public Int64 LongValue;
+
+            [FieldOffset(0)]
+            public UInt64 ULongValue;
+
+            [FieldOffset(0)]
+            public double DoubleValue;
+
+            [FieldOffset(0)]
+            public char CharValue;
+
+            [FieldOffset(0)]
+            public IntPtr StringValue;
         }
 
-        public override string ToString()
-        {
-            return ToString(address:null);
-        }
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = VirConstants.VIR_TYPED_PARAM_FIELD_LENGTH)]
+        public string Name;
+
+        public VirTypedParamType Type;
+
+        public _VALUEUNION Value;
+
     }
 }

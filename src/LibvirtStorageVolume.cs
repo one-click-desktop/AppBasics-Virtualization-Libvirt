@@ -173,7 +173,7 @@ namespace Libvirt
 
         public override string ToString()
         {
-            return $"{typeof(LibvirtStorageVolume).Name} name={Name}, key={Key}, capacity={CapacityInByte}";
+            return $"{typeof(LibvirtStorageVolume).Name} {Key}";
         }
         #endregion
 

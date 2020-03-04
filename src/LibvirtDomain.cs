@@ -22,10 +22,15 @@
  * or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using Libvirt.Metrics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Xml;
@@ -42,6 +47,8 @@ namespace Libvirt
         private readonly IntPtr _domainPtr;
         private XmlDocument _xmlDescription = null;
         private readonly object _xmlDescrLock = new object();
+        private VirDomainInfo _virDomainInfo = null;
+        private readonly GuestCpuUtilizationMetric _cpuUtil;
 
         internal LibvirtDomain(LibvirtConnection connection, Guid uniqueId, IntPtr domainPtr)
         {
@@ -52,6 +59,67 @@ namespace Libvirt
             if (domainPtr == IntPtr.Zero)
                 throw new ArgumentNullException("domainPtr");
             _domainPtr = domainPtr;
+            _cpuUtil = new GuestCpuUtilizationMetric(GetInfo().NrVirtCpu);
+            _conn.MetricsTick += OnMetricsTickEvent;
+        }
+
+        public void GetScreenshot(Stream stream, ImageFormat format)
+        {
+            var streamPtr = NativeVirStream.New(_conn.ConnectionPtr, 0);
+            if (streamPtr == IntPtr.Zero)
+            {
+                Trace.WriteLine($"Could not allocate stream: {NativeVirErrors.GetLastMessage()}");
+                return;
+            }
+
+            try
+            {
+                string mimeType = NativeVirDomain.GetScreenshot(_domainPtr, streamPtr, 0, 0);
+                if (string.IsNullOrEmpty(mimeType))
+                {
+                    Trace.WriteLine($"Screenshot request failed: {NativeVirErrors.GetLastMessage()}");
+                    return;
+                }
+
+                using (var ms = new MemoryStream())
+                {
+                    byte[] buffer = new byte[1024];
+
+                    int rcvsize = 1;
+                    while (rcvsize > 0)
+                    {
+                        rcvsize = NativeVirStream.Recv(streamPtr, buffer, 1024);
+                        ms.Write(buffer, 0, rcvsize);
+                    }
+
+                    if (rcvsize < 0)
+                    {
+                        Trace.WriteLine($"Failed to read from stream: {NativeVirErrors.GetLastMessage()}");
+                        return;
+                    }
+
+                    ms.Seek(0, SeekOrigin.Begin);
+
+                    Bitmap image = null;
+                    switch (mimeType)
+                    {
+                        case "image/x-portable-pixmap":
+                            image = GraphicsHelper.PortablePixmapToBitmap(ms);
+                            break;
+                        default:
+                            Trace.WriteLine($"Unknown image format {mimeType}.");
+                            return;
+                    }
+
+                    image.Save(stream, format);
+                    image.Dispose();
+                }
+            }
+            finally
+            {
+                try { NativeVirStream.Finish(streamPtr); } catch (Exception) { }
+                NativeVirStream.Free(streamPtr);
+            }
         }
 
         #region Properties
@@ -95,6 +163,16 @@ namespace Libvirt
             }
         }
 
+        public VirDomainInfo GetInfo()
+        {
+            if (_virDomainInfo == null && NativeVirDomain.GetInfo(_domainPtr, (_virDomainInfo = new VirDomainInfo())) < 0)
+            {
+                _virDomainInfo = null;
+                throw new LibvirtQueryException();
+            }
+            return _virDomainInfo;
+        }
+
         #endregion
 
         #region Configuration
@@ -108,8 +186,10 @@ namespace Libvirt
                     {
                         if (_xmlDescription == null)
                         {
-                            string xmlText = NativeVirDomain.GetXMLDesc(_domainPtr, 
-                                VirDomainXMLFlags.VIR_DOMAIN_XML_SECURE | VirDomainXMLFlags.VIR_DOMAIN_XML_INACTIVE);
+                            var flags = VirDomainXMLFlags.VIR_DOMAIN_XML_SECURE;
+                            if (!IsActive)
+                                flags |= VirDomainXMLFlags.VIR_DOMAIN_XML_INACTIVE;
+                            string xmlText = NativeVirDomain.GetXMLDesc(_domainPtr, flags);
                             if (string.IsNullOrWhiteSpace(xmlText))
                                 throw new LibvirtQueryException();
                             _xmlDescription = new XmlDocument();
@@ -129,8 +209,10 @@ namespace Libvirt
 
                 XmlSerializer serializer = new XmlSerializer(typeof(VirXmlDomainDisk), defaultNamespace:"");
                 foreach (XmlNode devNode in devNodeList)
+                {
                     using (var reader = new XmlNodeReader(devNode))
                         yield return (VirXmlDomainDisk)serializer.Deserialize(reader);
+                }
             }
         }
 
@@ -138,14 +220,73 @@ namespace Libvirt
         {
             get
             {
-                XmlNodeList devNodeList = XmlDescription.SelectNodes("//domain/devices/grpahics");
-
+                XmlNodeList devNodeList = XmlDescription.SelectNodes("//domain/devices/graphics");
                 XmlSerializer serializer = new XmlSerializer(typeof(VirXmlDomainGraphics), defaultNamespace: "");
                 foreach (XmlNode devNode in devNodeList)
+                {
                     using (var reader = new XmlNodeReader(devNode))
                         yield return (VirXmlDomainGraphics)serializer.Deserialize(reader);
+                }
             }
         }
+
+        public string GetPraphicsUri(VirXmlDomainGraphicsType preferredType = VirXmlDomainGraphicsType.VNC)
+        {
+            foreach (var type in new VirXmlDomainGraphicsType[] { preferredType, VirXmlDomainGraphicsType.VNC, VirXmlDomainGraphicsType.Spice, VirXmlDomainGraphicsType.RDP })
+            {
+                var graphics = this.GraphicsDevices.Where(t => t.Type == type).FirstOrDefault();
+                if (graphics == null)
+                    continue;
+
+                return graphics.ToString(address: string.Equals(graphics.Listen, "0.0.0.0") ? _conn.Node.Hostname : null);
+            }
+
+            return null;
+        }
+
+        public IEnumerable<VirXmlDomainNetInterface> NetworkInterfaces
+        {
+            get
+            {
+                XmlNodeList devNodeList = XmlDescription.SelectNodes("//domain/devices/interface[@type='network']");
+                XmlSerializer serializer = new XmlSerializer(typeof(VirXmlDomainNetInterface), defaultNamespace: "");
+                foreach (XmlNode devNode in devNodeList)
+                {
+                    using (var reader = new XmlNodeReader(devNode))
+                        yield return (VirXmlDomainNetInterface)serializer.Deserialize(reader);
+                }
+            }
+        }
+        #endregion
+
+        #region Stats
+        private VirTypedParameter[] _cpuStats = null;
+
+        private void OnMetricsTickEvent(object sender, EventArgs e)
+        {
+            if (_cpuStats == null)
+            {
+                int nparams = NativeVirDomain.GetCpuStats(_domainPtr, null, 0, -1, 1, 0);
+                _cpuStats = new VirTypedParameter[nparams];
+            }
+
+            if (NativeVirDomain.GetCpuStats(_domainPtr, _cpuStats, (uint)_cpuStats.Length, -1, 1, 0) < _cpuStats.Length)
+                return;
+
+            _cpuUtil.Update(
+                _cpuStats.Where(t => t.Name == "cpu_time" && t.Type == VirTypedParamType.VIR_TYPED_PARAM_ULLONG)
+                    .Select(t => t.Value.ULongValue).First(),
+                _cpuStats.Where(t => t.Name == "system_time" && t.Type == VirTypedParamType.VIR_TYPED_PARAM_ULLONG)
+                    .Select(t => t.Value.ULongValue).First(),
+                _cpuStats.Where(t => t.Name == "user_time" && t.Type == VirTypedParamType.VIR_TYPED_PARAM_ULLONG)
+                    .Select(t => t.Value.ULongValue).First());
+        }
+
+        /// <summary>
+        /// Returns CPU utilization information
+        /// </summary>
+        public GuestCpuUtilizationMetric CpuUtilization => _cpuUtil;
+
         #endregion
 
         #region Events
@@ -154,9 +295,16 @@ namespace Libvirt
             if (Thread.VolatileRead(ref _isDisposing) != 0)
                 return;
 
-            if (args.EventType == VirDomainEventType.VIR_DOMAIN_EVENT_DEFINED)
-                lock(_xmlDescrLock)
-                    _xmlDescription = null; // Fore re-read of configuration
+            switch(args.EventType)
+            {
+                case VirDomainEventType.VIR_DOMAIN_EVENT_SUSPENDED:
+                case VirDomainEventType.VIR_DOMAIN_EVENT_UNDEFINED:
+                case VirDomainEventType.VIR_DOMAIN_EVENT_STOPPED:
+                case VirDomainEventType.VIR_DOMAIN_EVENT_DEFINED:
+                    lock (_xmlDescrLock)
+                        _xmlDescription = null; // Fore re-read of configuration
+                    break;
+            }
         }
         #endregion
 
@@ -238,6 +386,7 @@ namespace Libvirt
                 return;
 
             Trace.WriteLine($"Disposing domain {this.ToString()}.");
+            _conn.MetricsTick -= OnMetricsTickEvent;
 
             if (_domainPtr != IntPtr.Zero)
                 NativeVirDomain.Free(_domainPtr);

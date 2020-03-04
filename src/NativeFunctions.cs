@@ -14,7 +14,7 @@ namespace Libvirt
     /// <summary>
     /// The class expose some useful native functions
     /// </summary>
-    public class NativeFunctions
+    internal class NativeFunctions
     {
         // TODO : this is a temporary workaround for virConnectOpenAuth callback, this should be removed
         /// <summary>
@@ -28,5 +28,12 @@ namespace Libvirt
         // TODO : this is a temporary workaround for virConnectOpenAuth callback, this should be removed
         [DllImport("msvcrt.dll", EntryPoint = "free", CallingConvention = CallingConvention.Cdecl)]
         public static extern void Free(IntPtr ptr);
+
+
+        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public static extern IntPtr fopen(String filename, String mode);
+
+        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public static extern Int32 fclose(IntPtr file);
     }
 }

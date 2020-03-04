@@ -37,41 +37,41 @@ namespace Libvirt
         /// String indicating the CPU model.
         /// </summary>
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
-        public string model;
+        public string Model;
         /// <summary>
         /// Memory size in kilobytes
         /// </summary>
         [MarshalAs(UnmanagedType.SysUInt)]
-        public UIntPtr memory;
+        public ulong Memory;
         /// <summary>
         /// The number of active CPUs.
         /// </summary>
         [MarshalAs(UnmanagedType.SysUInt)]
-        public UIntPtr cpus;
+        public uint Cpus;
         /// <summary>
         /// Expected CPU frequency.
         /// </summary>
         [MarshalAs(UnmanagedType.SysUInt)]
-        public UIntPtr mhz;
+        public uint Mhz;
         /// <summary>
         /// The number of NUMA cell, 1 for uniform mem access.
         /// </summary>
         [MarshalAs(UnmanagedType.SysUInt)]
-        public UIntPtr nodes;
+        public uint Nodes;
         /// <summary>
         /// Number of CPU socket per node.
         /// </summary>
         [MarshalAs(UnmanagedType.SysUInt)]
-        public UIntPtr sockets;
+        public uint Sockets;
         /// <summary>
         /// Number of core per socket.
         /// </summary>
         [MarshalAs(UnmanagedType.SysUInt)]
-        public UIntPtr cores;
+        public uint Cores;
         /// <summary>
         /// Number of threads per core.
         /// </summary>
         [MarshalAs(UnmanagedType.SysUInt)]
-        public UIntPtr threads;
+        public uint Threads;
     }
 }

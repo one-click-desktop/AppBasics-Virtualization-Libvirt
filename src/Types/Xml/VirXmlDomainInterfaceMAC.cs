@@ -30,32 +30,15 @@ using System.Xml.Serialization;
 namespace Libvirt
 {
     [Serializable]
-    [XmlRoot(ElementName = "graphics", Namespace = "")]
-    public class VirXmlDomainGraphics
+    [XmlRoot(ElementName = "mac", Namespace = "")]
+    public class VirXmlDomainInterfaceMAC
     {
-        [XmlAttribute(AttributeName = "type")]
-        public VirXmlDomainGraphicsType Type { get; set; }
-
-        [XmlAttribute(AttributeName = "listen")]
-        public string Listen { get; set; }
-
-        [XmlAttribute(AttributeName = "port")]
-        public int Port { get; set; }
-
-        [XmlAttribute(AttributeName = "autoport")]
-        private string _autoport { get; set; }
-
-        [XmlIgnore]
-        public bool IsAutoPort {  get { return string.Equals("yes", _autoport); } }
-
-        public string ToString(string address = null)
-        {
-            return $"{Type.ToString().ToLower()}://{address ?? Listen}:{Port}";
-        }
+        [XmlAttribute(AttributeName = "address")]
+        public string Address { get; set; }
 
         public override string ToString()
         {
-            return ToString(address:null);
+            return $"MAC Address {Address}";
         }
     }
 }

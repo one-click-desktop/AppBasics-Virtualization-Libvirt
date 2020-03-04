@@ -14,7 +14,7 @@ namespace Libvirt
     /// <summary>
     /// The MarshalHelper class provide some methods that simplify marshaling
     /// </summary>
-    public class MarshalHelper
+    internal class MarshalHelper
     {
         /// <summary>
         /// Convert an IntPtr to a string array

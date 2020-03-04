@@ -107,10 +107,10 @@ namespace virDomainStats
             NativeVirDomain.GetInfo(_domainPtr, domainInfo);
 
             tbState.Text = domainInfo.State.ToString();
-            tbMaxMem.Text = domainInfo.maxMem.ToString();
-            tbMemory.Text = domainInfo.memory.ToString();
-            tbNrVirtCpu.Text = domainInfo.nrVirtCpu.ToString();
-            tbCpuTime.Text = domainInfo.cpuTime.ToString();
+            tbMaxMem.Text = domainInfo.MaxMem.ToString();
+            tbMemory.Text = domainInfo.Memory.ToString();
+            tbNrVirtCpu.Text = domainInfo.NrVirtCpu.ToString();
+            tbCpuTime.Text = domainInfo.CpuTime.ToString();
         }
 
         private string[] GetDomainBlockDevices(string xmlDomainDescription)

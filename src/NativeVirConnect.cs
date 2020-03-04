@@ -104,6 +104,7 @@ namespace Libvirt
         /// <returns>the number of names provided in the array or -1 in case of error</returns>
         [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virConnectListDefinedDomains")]
         private static extern int ListDefinedDomains(IntPtr conn, IntPtr names, int maxnames);
+
         /// <summary>
         /// list the defined but inactive domains, stores the pointers to the names in @names
         /// </summary>
@@ -120,6 +121,7 @@ namespace Libvirt
             Marshal.FreeHGlobal(namesPtr);
             return count;
         }
+
         /// <summary>
         /// Collect the list of defined (inactive) physical host interfaces, and store their names in @names.
         /// </summary>

@@ -41,21 +41,21 @@ namespace Libvirt
         /// The maximum memory in KBytes allowed.
         /// </summary>
         [MarshalAs(UnmanagedType.SysUInt)]
-        public UIntPtr maxMem;
+        public UIntPtr MaxMem;
         /// <summary>
         /// The memory in KBytes used by the domain.
         /// </summary>
         [MarshalAs(UnmanagedType.SysUInt)]
-        public UIntPtr memory;
+        public UIntPtr Memory;
         /// <summary>
         /// The number of virtual CPUs for the domain.
         /// </summary>
-        public ushort nrVirtCpu;
+        public ushort NrVirtCpu;
         /// <summary>
         /// The CPU time used in nanoseconds.
         /// </summary>
         [MarshalAs(UnmanagedType.SysUInt)]
-        public UIntPtr cpuTime;
+        public UIntPtr CpuTime;
         /// <summary>
         /// The running state, one of virDomainState.
         /// </summary>

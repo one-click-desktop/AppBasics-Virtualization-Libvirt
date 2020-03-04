@@ -43,6 +43,8 @@ namespace Libvirt
 
         private readonly CancellationTokenSource _closeTokenSource;
         private readonly LibvirtEventLoop _lvEvents;
+        private readonly LibvirtNode _lvNode;
+        private readonly Timer _metricsTicker;
 
         /// <summary>
         /// Creates a new connections
@@ -56,8 +58,52 @@ namespace Libvirt
 
             _closeTokenSource = new CancellationTokenSource();
 
+            _lvNode = new LibvirtNode(this);
             _lvEvents = new LibvirtEventLoop(this);
+
+            _metricsTicker = new Timer(MetricsTickerCallback, null, _metricsInterval, _metricsInterval);
         }
+
+        #region Metrics Tick
+        private readonly object _metricsTickEventLock = new object();
+        private event EventHandler _metricsTickEventHandler;
+
+        internal event EventHandler MetricsTick
+        {
+            add { lock (_metricsTickEventLock) _metricsTickEventHandler += value; }
+            remove { lock (_metricsTickEventLock) _metricsTickEventHandler -= value; }
+        }
+
+        private int _metricsInterval = 1000;
+
+        public int MetricsIntervalSeconds
+        {
+            get { return _metricsInterval / 1000; }
+            set
+            {
+                if (value == 0)
+                {
+                    _metricsInterval = 0;
+                    _metricsTicker.Change(Timeout.Infinite, Timeout.Infinite);
+                    return;
+                }
+                _metricsInterval = value < 1 ? 1000 : value * 1000;
+                _metricsTicker.Change(_metricsInterval, _metricsInterval);
+            }
+        }
+        
+        private void MetricsTickerCallback(object state)
+        {
+            if (Thread.VolatileRead(ref _isDisposing) != 0)
+                return;
+
+            EventHandler handler;
+            lock (_metricsTickEventLock)
+                handler = _metricsTickEventHandler;
+
+            handler?.Invoke(this, EventArgs.Empty);
+        }
+        #endregion
 
         #region Connection
         public bool IsAlive {  get { return NativeVirConnect.IsAlive(_connPtr) == 1; } }
@@ -68,6 +114,11 @@ namespace Libvirt
                 throw new LibvirtConnectionException();
         }
 
+        #endregion
+
+        #region Node
+        public LibvirtNode Node => _lvNode;
+        
         #endregion
 
         #region Domains
@@ -630,6 +681,12 @@ namespace Libvirt
 
             Trace.WriteLine("Disposing connection.");
 
+            if (_metricsTicker != null)
+            {
+                _metricsTicker.Change(Timeout.Infinite, Timeout.Infinite);
+                _metricsTicker.Dispose();
+            }
+
             _closeTokenSource.Cancel(false);
 
             foreach (var domain in _domainCache.Values)
@@ -646,6 +703,8 @@ namespace Libvirt
                 storagePool.Dispose();
 
             _storagePoolCache.Clear();
+
+            _lvNode.Dispose();
 
             if (_connPtr != IntPtr.Zero)
                 NativeVirConnect.Close(_connPtr);

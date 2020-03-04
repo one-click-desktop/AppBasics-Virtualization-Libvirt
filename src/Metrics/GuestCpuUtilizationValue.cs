@@ -25,37 +25,15 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Xml.Serialization;
 
-namespace Libvirt
+namespace Libvirt.Metrics
 {
-    [Serializable]
-    [XmlRoot(ElementName = "graphics", Namespace = "")]
-    public class VirXmlDomainGraphics
+    public struct GuestCpuUtilizationValue
     {
-        [XmlAttribute(AttributeName = "type")]
-        public VirXmlDomainGraphicsType Type { get; set; }
+        public decimal Total { get; internal set; }
 
-        [XmlAttribute(AttributeName = "listen")]
-        public string Listen { get; set; }
+        public decimal System { get; internal set; }
 
-        [XmlAttribute(AttributeName = "port")]
-        public int Port { get; set; }
-
-        [XmlAttribute(AttributeName = "autoport")]
-        private string _autoport { get; set; }
-
-        [XmlIgnore]
-        public bool IsAutoPort {  get { return string.Equals("yes", _autoport); } }
-
-        public string ToString(string address = null)
-        {
-            return $"{Type.ToString().ToLower()}://{address ?? Listen}:{Port}";
-        }
-
-        public override string ToString()
-        {
-            return ToString(address:null);
-        }
+        public decimal User { get; internal set; }
     }
 }

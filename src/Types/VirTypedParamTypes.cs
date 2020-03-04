@@ -25,37 +25,18 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Xml.Serialization;
 
 namespace Libvirt
 {
-    [Serializable]
-    [XmlRoot(ElementName = "graphics", Namespace = "")]
-    public class VirXmlDomainGraphics
+    public enum VirTypedParamType : int
     {
-        [XmlAttribute(AttributeName = "type")]
-        public VirXmlDomainGraphicsType Type { get; set; }
-
-        [XmlAttribute(AttributeName = "listen")]
-        public string Listen { get; set; }
-
-        [XmlAttribute(AttributeName = "port")]
-        public int Port { get; set; }
-
-        [XmlAttribute(AttributeName = "autoport")]
-        private string _autoport { get; set; }
-
-        [XmlIgnore]
-        public bool IsAutoPort {  get { return string.Equals("yes", _autoport); } }
-
-        public string ToString(string address = null)
-        {
-            return $"{Type.ToString().ToLower()}://{address ?? Listen}:{Port}";
-        }
-
-        public override string ToString()
-        {
-            return ToString(address:null);
-        }
+        VIR_TYPED_PARAM_INT = 1,
+        VIR_TYPED_PARAM_UINT,
+        VIR_TYPED_PARAM_LLONG,
+        VIR_TYPED_PARAM_ULLONG,
+        VIR_TYPED_PARAM_DOUBLE,
+        VIR_TYPED_PARAM_BOOLEAN,
+        VIR_TYPED_PARAM_STRING,
+        VIR_TYPED_PARAM_LAST
     }
 }

@@ -25,37 +25,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Xml.Serialization;
 
 namespace Libvirt
 {
-    [Serializable]
-    [XmlRoot(ElementName = "graphics", Namespace = "")]
-    public class VirXmlDomainGraphics
+    public class VirConstants
     {
-        [XmlAttribute(AttributeName = "type")]
-        public VirXmlDomainGraphicsType Type { get; set; }
-
-        [XmlAttribute(AttributeName = "listen")]
-        public string Listen { get; set; }
-
-        [XmlAttribute(AttributeName = "port")]
-        public int Port { get; set; }
-
-        [XmlAttribute(AttributeName = "autoport")]
-        private string _autoport { get; set; }
-
-        [XmlIgnore]
-        public bool IsAutoPort {  get { return string.Equals("yes", _autoport); } }
-
-        public string ToString(string address = null)
-        {
-            return $"{Type.ToString().ToLower()}://{address ?? Listen}:{Port}";
-        }
-
-        public override string ToString()
-        {
-            return ToString(address:null);
-        }
+        public const int VIR_TYPED_PARAM_FIELD_LENGTH = 80;
     }
 }

@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2;net4</TargetFrameworks>
+    <TargetFrameworks>netstandard2;net47</TargetFrameworks>
     <PackageId>libvirt-dotnet</PackageId>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <Authors>IDNT and the Livirt-dotnet contributors.</Authors>
@@ -20,6 +20,9 @@
     <FileVersion>1.0.1.2</FileVersion>
     <Version>1.0.2</Version>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
+  </ItemGroup>
   <ItemGroup>
     <None Update="libvirt-dotnet.dll.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

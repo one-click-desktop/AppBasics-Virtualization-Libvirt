@@ -9,10 +9,24 @@ more .NETish interface for working with libvirt.
 
 Note that this is still a work in progress. Expect some breaking changes for 
 the time being. The code runs fine on mono (tested with mono 6.8 on RHEL 8).
+
+# Nuget package
+
+A NuGet package is now also available at https://www.nuget.org/packages/libvirt-dotnet
+
+```PS
+Install-Package libvirt-dotnet
+```
+
  
 # Documentation
  
 The following code should give you a head start: 
+
+## Example 1
+
+The following code will output a list of domains and storage pools. Thereafter it 
+waits for domain events like stopped, started, ... until you hit ENTER.
 
 ```c#
 private static void Connection_DomainEventReceived(object sender, VirDomainEventArgs e)
@@ -52,12 +66,35 @@ static void Main(string[] args)
 }
 ```
 
-# Nuget package
+## Example 2
 
-A NuGet package is now also available:
+Getting the domains CPU utilization in percent is as easy as:
 
-```PS
-Install-Package libvirt-dotnet
+```c#
+    using (var connection = LibvirtConnection.Open())
+    {
+		d = domain in connection.Domains.Where(t => t.Name == 'MyVM').First();
+		
+		while(! Console.KeyAvailable)
+		{
+		    Console.WriteLine($"{d.Name}'s CPU Utilization = {d.CpuUtilization.Current}%");
+		    Thread.Sleep(1000);
+		}
+	}
+```
+
+## Example 3
+
+You need a screenshot of a domains console? Here you go:
+
+```c#
+    using (var connection = LibvirtConnection.Open())
+    {
+		d = domain in connection.Domains.Where(t => t.Name == 'MyVM').First();
+		
+		 using(var fs = new FileStream("image.jpg", FileMode.Create))
+			d.GetScreenshot(fs, System.Drawing.Imaging.ImageFormat.Jpeg);
+	}
 ```
 
 # License

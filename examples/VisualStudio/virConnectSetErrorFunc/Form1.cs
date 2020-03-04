@@ -43,10 +43,10 @@ namespace virConnectSetErrorFunc
                 VirDomainInfo di = new VirDomainInfo();
                 NativeVirDomain.GetInfo(domain, di);
                 textBox1.Text = di.State.ToString();
-                textBox2.Text = di.maxMem.ToString();
-                textBox3.Text = di.memory.ToString();
-                textBox4.Text = di.nrVirtCpu.ToString();
-                textBox5.Text = di.cpuTime.ToString();
+                textBox2.Text = di.MaxMem.ToString();
+                textBox3.Text = di.Memory.ToString();
+                textBox4.Text = di.NrVirtCpu.ToString();
+                textBox5.Text = di.CpuTime.ToString();
             }
             else
             {

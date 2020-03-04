@@ -35,6 +35,20 @@ namespace Libvirt
         [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virDomainAttachDeviceFlags")]
         public static extern int AttachDeviceFlags(IntPtr domain, string xml, uint flags);
 
+        /// <summary>
+        /// et statistics relating to CPU usage attributable to a single domain (in contrast to the statistics returned by virNodeGetCPUStats() for all processes on the host).
+        /// See https://libvirt.org/html/libvirt-libvirt-domain.html#virConnectGetAllDomainStats
+        /// </summary>
+        /// <param name="dom">pointer to the domain object</param>
+        /// <param name="typedParams">array of parameters (returned)</param>
+        /// <param name="nparams">number of parameters per cpu</param>
+        /// <param name="start_cpu">which cpu to start with, or -1 for summary</param>
+        /// <param name="ncpus">how many cpus to query</param>
+        /// <param name="flags">bitwise-OR of virTypedParameterFlags</param>
+        /// <returns>-1 on failure, or the number of statistics that were populated per cpu on success (this will be less than the total number of populated @params, unless @ncpus was 1; and may be less than @nparams). The populated parameters start at each stride of @nparams, which means the results may be discontiguous; any unpopulated parameters will be zeroed on success (this includes skipped elements if @nparams is too large, and tail elements if @ncpus is too large). The caller is responsible for freeing any returned string parameters..</returns>
+        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virDomainGetCPUStats")]
+        public static extern int GetCpuStats(IntPtr dom, [Out]VirTypedParameter[] typedParams, uint nparams, int start_cpu, uint ncpus, uint flags);
+
         // TODO virDomainBlockPeek
 
         /// <summary>
@@ -47,6 +61,7 @@ namespace Libvirt
         /// <returns>0 in case of success or -1 in case of failure.</returns>
         [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virDomainBlockStats")]
         private static extern int BlockStats(IntPtr dom, string path, IntPtr stats, int size);
+
         /// <summary>
         /// This function returns block device (disk) stats for block devices attached to the domain. The path parameter is the name of the block device. Get this by calling virDomainGetXMLDesc and finding the target dev='...' attribute within //domain/devices/disk. (For example, "xvda"). Domains may have more than one block device. To get stats for each you should make multiple calls to this function. Individual fields within the stats structure may be returned as -1, which indicates that the hypervisor does not support that particular statistic.
         /// </summary>
@@ -716,5 +731,16 @@ namespace Libvirt
         [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virDomainUndefine")]
         public static extern int Undefine(IntPtr domain);
 
+        /// <summary>
+        /// This function returns block device (disk) stats for block devices attached to the domain. The path parameter is the name of the block device. Get this by calling virDomainGetXMLDesc and finding the target dev='...' attribute within //domain/devices/disk. (For example, "xvda"). Domains may have more than one block device. To get stats for each you should make multiple calls to this function. Individual fields within the stats structure may be returned as -1, which indicates that the hypervisor does not support that particular statistic.
+        /// </summary>
+        /// <param name="dom">pointer to the domain object</param>
+        /// <param name="stream">stream to use as output</param>
+        /// <param name="screen">monitor ID to take screenshot from</param>
+        /// <param name="flags">extra flags; not used yet, so callers should always pass 0</param>
+        /// <returns>a string representing the mime-type of the image format, or NULL upon error. The caller must free() the returned value.</returns>
+        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virDomainScreenshot")]
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringWithoutNativeCleanUpMarshaler))]
+        public static extern string GetScreenshot(IntPtr dom, IntPtr stream, uint screen, uint flags);
     }
 }
