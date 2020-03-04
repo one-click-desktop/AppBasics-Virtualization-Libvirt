@@ -73,7 +73,7 @@ Getting the domains CPU utilization in percent is as easy as:
 ```c#
     using (var connection = LibvirtConnection.Open())
     {
-		d = domain in connection.Domains.Where(t => t.Name == 'MyVM').First();
+		var d = domain in connection.Domains.Where(t => t.Name == 'MyVM').First();
 		
 		while(! Console.KeyAvailable)
 		{
@@ -90,9 +90,9 @@ You need a screenshot of a domains console? Here you go:
 ```c#
     using (var connection = LibvirtConnection.Open())
     {
-		d = domain in connection.Domains.Where(t => t.Name == 'MyVM').First();
+		var d = domain in connection.Domains.Where(t => t.Name == 'MyVM').First();
 		
-		 using(var fs = new FileStream("image.jpg", FileMode.Create))
+		using(var fs = new FileStream("image.jpg", FileMode.Create))
 			d.GetScreenshot(fs, System.Drawing.Imaging.ImageFormat.Jpeg);
 	}
 ```

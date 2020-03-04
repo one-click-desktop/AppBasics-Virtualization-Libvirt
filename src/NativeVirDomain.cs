@@ -36,7 +36,7 @@ namespace Libvirt
         public static extern int AttachDeviceFlags(IntPtr domain, string xml, uint flags);
 
         /// <summary>
-        /// et statistics relating to CPU usage attributable to a single domain (in contrast to the statistics returned by virNodeGetCPUStats() for all processes on the host).
+        /// get statistics relating to CPU usage attributable to a single domain (in contrast to the statistics returned by virNodeGetCPUStats() for all processes on the host).
         /// See https://libvirt.org/html/libvirt-libvirt-domain.html#virConnectGetAllDomainStats
         /// </summary>
         /// <param name="dom">pointer to the domain object</param>

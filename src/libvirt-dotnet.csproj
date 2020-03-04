@@ -16,9 +16,9 @@
     <AssemblyName>libvirt-dotnet</AssemblyName>
     <RootNamespace>Libvirt</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>1.0.1.2</AssemblyVersion>
+    <AssemblyVersion>1.0.1.3</AssemblyVersion>
     <FileVersion>1.0.1.2</FileVersion>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Drawing.Common" Version="4.7.0" />

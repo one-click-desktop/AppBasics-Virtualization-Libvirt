@@ -39,7 +39,7 @@ namespace Libvirt
                 if (reader.ReadChar() != 'P' || reader.ReadChar() != '6')
                     return null;
 
-                reader.ReadChar(); //Eat newline
+                reader.ReadChar(); 
                 string widths = "", heights = "";
 
                 char temp;
@@ -52,7 +52,7 @@ namespace Libvirt
                 if (reader.ReadChar() != '2' || reader.ReadChar() != '5' || reader.ReadChar() != '5')
                     return null;
 
-                reader.ReadChar(); //Eat the last newline
+                reader.ReadChar();
                 int width = int.Parse(widths),
                     height = int.Parse(heights);
 

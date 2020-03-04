@@ -230,7 +230,7 @@ namespace Libvirt
             }
         }
 
-        public string GetPraphicsUri(VirXmlDomainGraphicsType preferredType = VirXmlDomainGraphicsType.VNC)
+        public string GetGraphicsUri(VirXmlDomainGraphicsType preferredType = VirXmlDomainGraphicsType.VNC)
         {
             foreach (var type in new VirXmlDomainGraphicsType[] { preferredType, VirXmlDomainGraphicsType.VNC, VirXmlDomainGraphicsType.Spice, VirXmlDomainGraphicsType.RDP })
             {
@@ -256,6 +256,16 @@ namespace Libvirt
                         yield return (VirXmlDomainNetInterface)serializer.Deserialize(reader);
                 }
             }
+        }
+
+        public string MachineType
+        {
+            get { return XmlDescription.SelectSingleNode("//domain/os/type").Attributes["machine"].Value; }
+        }
+
+        public string MachineArch
+        {
+            get { return XmlDescription.SelectSingleNode("//domain/os/type").Attributes["arch"].Value; }
         }
         #endregion
 
