@@ -25,20 +25,21 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Xml.Serialization;
 
 namespace Libvirt
 {
-    [Serializable]
-    [XmlRoot(ElementName = "source", Namespace = "")]
-    public class VirXmlDomainInterfaceSource
+    /// <summary>
+    /// This is a struct used to simply the C# bindings, for C# bindings internal use only.
+    /// </summary>
+    public struct VirOpenAuthManagedCB
     {
-        [XmlAttribute(AttributeName = "network")]
-        public string Network { get; set; }
-
-        public override string ToString()
-        {
-            return $"{Network}";
-        }
+        /// <summary>
+        /// Pointer to user data of the ConnectOpenAuth
+        /// </summary>
+        public IntPtr cbdata;
+        /// <summary>
+        /// The C# delegate which must be called
+        /// </summary>
+        public ConnectAuthCallback cbManaged;
     }
 }

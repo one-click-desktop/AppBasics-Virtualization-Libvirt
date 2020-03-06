@@ -62,7 +62,7 @@ namespace Libvirt
         public string Key { get; private set; }
 
         /// <summary>
-        /// True if the domain is currently active (running).
+        /// Get the storage volume path
         /// </summary>
         public string Path { get { return NativeVirStorageVol.GetPath(_volumePtr);  } }
 
@@ -141,6 +141,22 @@ namespace Libvirt
                 return _xmlDescription;
             }
         }
+
+        public string Format
+        {
+            get { return this.XmlDescription.SelectSingleNode("//target/format/@type").Value; }
+        }
+
+        public DateTime CreatedAt
+        {
+            get { return DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(this.XmlDescription.SelectSingleNode("//target/timestamps/ctime").Value.Split('.').First())).DateTime; }
+        }
+
+        public DateTime ModifiedAt
+        {
+            get { return DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(this.XmlDescription.SelectSingleNode("//target/timestamps/mtime").Value.Split('.').First())).DateTime; }
+        }
+
         #endregion
 
         #region Events

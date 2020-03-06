@@ -30,15 +30,13 @@ using System.Xml.Serialization;
 namespace Libvirt
 {
     [Serializable]
-    [XmlRoot(ElementName = "source", Namespace = "")]
-    public class VirXmlDomainInterfaceSource
+    [XmlRoot(ElementName = "target", Namespace = "")]
+    public class VirXmlDomainDiskTarget
     {
-        [XmlAttribute(AttributeName = "network")]
-        public string Network { get; set; }
+        [XmlAttribute(AttributeName = "dev")]
+        public string Device { get; set; }
 
-        public override string ToString()
-        {
-            return $"{Network}";
-        }
+        [XmlAttribute(AttributeName = "bus")]
+        public VirXmlBusType Bus { get; set; }
     }
 }

@@ -77,7 +77,7 @@ Getting the domains CPU utilization in percent is as easy as:
 		
 		while(! Console.KeyAvailable)
 		{
-		    Console.WriteLine($"{d.Name}'s CPU Utilization = {d.CpuUtilization.Current}%");
+		    Console.WriteLine($"{d.Name}'s CPU Utilization = {d.CpuUtilization.LastSecond}%");
 		    Thread.Sleep(1000);
 		}
 	}

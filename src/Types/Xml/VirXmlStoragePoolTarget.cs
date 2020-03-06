@@ -30,15 +30,15 @@ using System.Xml.Serialization;
 namespace Libvirt
 {
     [Serializable]
-    [XmlRoot(ElementName = "source", Namespace = "")]
-    public class VirXmlDomainInterfaceSource
+    [XmlRoot(ElementName = "target", Namespace = "")]
+    public class VirXmlStoragePoolTarget
     {
-        [XmlAttribute(AttributeName = "network")]
-        public string Network { get; set; }
+        [XmlElement("path")]
+        public string Path { get; set; }
 
-        public override string ToString()
+        internal string GetPath(string protocol)
         {
-            return $"{Network}";
+            return $"{protocol}:/{Path}";
         }
     }
 }

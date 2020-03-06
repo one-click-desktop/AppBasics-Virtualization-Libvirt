@@ -30,6 +30,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Xml;
+using System.Xml.Serialization;
 
 namespace Libvirt
 {
@@ -125,6 +126,41 @@ namespace Libvirt
                 return poolInfo.Allocation;
             }
         }
+
+        /// <summary>
+        /// Returns the libvirt driver for this domain (qemu|kvm|esx|hyperv|...)
+        /// </summary>
+        public string DriverType
+        {
+            get { return XmlDescription.Attributes["type"].Value; }
+        }
+
+        /// <summary>
+        /// Returns the path to the store pool root including the protocol used to access the path
+        /// </summary>
+        public string GetPath()
+        {
+            var descr = XmlDescription;
+
+            switch(DriverType)
+            {
+                case "dir":
+                    var dirNode = XmlDescription.SelectSingleNode("//target");
+                    var targetSerializer = new XmlSerializer(typeof(VirXmlStoragePoolTarget), defaultNamespace: "");
+                    using (var reader = new XmlNodeReader(dirNode))
+                        return ((VirXmlStoragePoolTarget)targetSerializer.Deserialize(reader)).GetPath("file");
+
+                case "gluster":
+                    var sourceNode = XmlDescription.SelectSingleNode("//source");
+                    var sourceSerializer = new XmlSerializer(typeof(VirXmlStoragePoolSource), defaultNamespace: "");
+                    using (var reader = new XmlNodeReader(sourceNode))
+                        return ((VirXmlStoragePoolSource)sourceSerializer.Deserialize(reader)).GetPath(DriverType);
+                default:
+                    throw new LibvirtNotImplementedException($"Can't determine path of storage pool ${Name} with driver {DriverType}.");
+            }
+
+        }
+
         #endregion
 
         #region Configuration
@@ -132,7 +168,11 @@ namespace Libvirt
         {
             get
             {
-                if (_xmlDescription == null)
+                XmlDocument document;
+                lock (_xmlDescrLock)
+                    document = _xmlDescription;
+
+                if (document == null)
                 {
                     lock (_xmlDescrLock)
                     {
@@ -144,9 +184,10 @@ namespace Libvirt
                             _xmlDescription = new XmlDocument();
                             _xmlDescription.LoadXml(xmlText);
                         }
+                        document = _xmlDescription;
                     }
                 }
-                return _xmlDescription;
+                return document;
             }
         }
         #endregion

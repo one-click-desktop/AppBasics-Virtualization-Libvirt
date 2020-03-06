@@ -39,29 +39,36 @@ namespace Libvirt
     /// </summary>
     public class LibvirtConnection : IDisposable
     {
-        private readonly IntPtr _connPtr;
-
-        private readonly CancellationTokenSource _closeTokenSource;
+        private readonly CancellationTokenSource _closeTokenSource = new CancellationTokenSource();
         private readonly LibvirtEventLoop _lvEvents;
-        private readonly LibvirtNode _lvNode;
         private readonly Timer _metricsTicker;
 
         /// <summary>
         /// Creates a new connections
         /// </summary>
         /// <param name="conn"></param>
-        public LibvirtConnection(IntPtr conn)
+        public LibvirtConnection(IntPtr conn, LibvirtConfiguration configuration = null)
         {
             if (conn == IntPtr.Zero)
                 throw new LibvirtConnectionException();
-            _connPtr = conn;
 
-            _closeTokenSource = new CancellationTokenSource();
+            ConnectionPtr = conn;
 
-            _lvNode = new LibvirtNode(this);
+            Configuration = configuration ?? new LibvirtConfiguration();
+
+            SetKeepAlive(LibvirtConfiguration.DEFAULT_LIBVIRT_KEEPALIVE_INTERVAL, 
+                         LibvirtConfiguration.DEFAULT_LIBVIRT_KEEPALIVE_COUNT);
+
+            Node = new LibvirtNode(this);
+
             _lvEvents = new LibvirtEventLoop(this);
 
-            _metricsTicker = new Timer(MetricsTickerCallback, null, _metricsInterval, _metricsInterval);
+            _metricsTicker = new Timer(MetricsTickerCallback, null,
+                Configuration.MetricsIntervalSeconds * 1000,
+                Configuration.MetricsIntervalSeconds * 1000);
+
+            Configuration.OnMetricsIntervalChanged = (i) => 
+                _metricsTicker.Change(i == 0 ? Timeout.Infinite : i, i == 0 ? Timeout.Infinite : i);
         }
 
         #region Metrics Tick
@@ -74,24 +81,6 @@ namespace Libvirt
             remove { lock (_metricsTickEventLock) _metricsTickEventHandler -= value; }
         }
 
-        private int _metricsInterval = 1000;
-
-        public int MetricsIntervalSeconds
-        {
-            get { return _metricsInterval / 1000; }
-            set
-            {
-                if (value == 0)
-                {
-                    _metricsInterval = 0;
-                    _metricsTicker.Change(Timeout.Infinite, Timeout.Infinite);
-                    return;
-                }
-                _metricsInterval = value < 1 ? 1000 : value * 1000;
-                _metricsTicker.Change(_metricsInterval, _metricsInterval);
-            }
-        }
-        
         private void MetricsTickerCallback(object state)
         {
             if (Thread.VolatileRead(ref _isDisposing) != 0)
@@ -106,19 +95,29 @@ namespace Libvirt
         #endregion
 
         #region Connection
-        public bool IsAlive {  get { return NativeVirConnect.IsAlive(_connPtr) == 1; } }
+        public bool IsAlive {  get { return NativeVirConnect.IsAlive(ConnectionPtr) == 1; } }
         
         public void SetKeepAlive(int interval, uint count)
         {
-            if (NativeVirConnect.SetKeepAlive(_connPtr, interval, count) < 0)
+            if (NativeVirConnect.SetKeepAlive(ConnectionPtr, interval, count) < 0)
                 throw new LibvirtConnectionException();
         }
+
+        /// <summary>
+        /// Disposes the connection.
+        /// </summary>
+        public void Close()
+        {
+            this.Dispose();
+        }
+
+        public LibvirtConfiguration Configuration { get; private set; }
 
         #endregion
 
         #region Node
-        public LibvirtNode Node => _lvNode;
-        
+        public LibvirtNode Node { get; private set; }
+
         #endregion
 
         #region Domains
@@ -132,12 +131,12 @@ namespace Libvirt
         /// <returns>List of domains</returns>
         public IEnumerable<LibvirtDomain> ListDomains(bool includeDefined = false)
         {
-            int nbDomains = NativeVirConnect.NumOfDomains(_connPtr);
+            int nbDomains = NativeVirConnect.NumOfDomains(ConnectionPtr);
             int[] domainIDs = new int[nbDomains];
-            if (NativeVirConnect.ListDomains(_connPtr, domainIDs, nbDomains) < 0)
+            if (NativeVirConnect.ListDomains(ConnectionPtr, domainIDs, nbDomains) < 0)
                 throw new LibvirtQueryException();
 
-            foreach (IntPtr domainPtr in domainIDs.Select(domainID => NativeVirDomain.LookupByID(_connPtr, domainID)))
+            foreach (IntPtr domainPtr in domainIDs.Select(domainID => NativeVirDomain.LookupByID(ConnectionPtr, domainID)))
             {
                 try
                 {
@@ -159,12 +158,12 @@ namespace Libvirt
 
             if (includeDefined)
             {
-                nbDomains = NativeVirConnect.NumOfDefinedDomains(_connPtr);
+                nbDomains = NativeVirConnect.NumOfDefinedDomains(ConnectionPtr);
                 string[] domainNames = new string[nbDomains];
-                if (NativeVirConnect.ListDefinedDomains(_connPtr, ref domainNames, nbDomains) < 0)
+                if (NativeVirConnect.ListDefinedDomains(ConnectionPtr, ref domainNames, nbDomains) < 0)
                     throw new LibvirtQueryException();
 
-                foreach (IntPtr domainPtr in domainNames.Select(domainName => NativeVirDomain.LookupByName(_connPtr, domainName)))
+                foreach (IntPtr domainPtr in domainNames.Select(domainName => NativeVirDomain.LookupByName(ConnectionPtr, domainName)))
                 {
                     try
                     {
@@ -200,7 +199,7 @@ namespace Libvirt
             if (cachedOnly)
                 return null;
             
-            var domainPtr = NativeVirDomain.LookupByUUID(_connPtr, uniqueId.ToUUID());
+            var domainPtr = NativeVirDomain.LookupByUUID(ConnectionPtr, uniqueId.ToUUID());
             if (domainPtr == IntPtr.Zero)
             {
                 if (_domainCache.TryRemove(uniqueId, out domain))
@@ -231,7 +230,7 @@ namespace Libvirt
         /// <returns>Domain or NULL</returns>
         public LibvirtDomain GetDomainByID(int domainId)
         {
-            var domainPtr = NativeVirDomain.LookupByID(_connPtr, domainId);
+            var domainPtr = NativeVirDomain.LookupByID(ConnectionPtr, domainId);
             if (domainPtr == IntPtr.Zero)
             {
                 Trace.WriteLine($"Could not find domain with ID '{domainId}'.");
@@ -263,7 +262,7 @@ namespace Libvirt
         /// <returns>Domain or NULL</returns>
         public LibvirtDomain GetDomainByName(string domainName)
         {
-            var domainPtr = NativeVirDomain.LookupByName(_connPtr, domainName);
+            var domainPtr = NativeVirDomain.LookupByName(ConnectionPtr, domainName);
             if (domainPtr == IntPtr.Zero)
             {
                 Trace.WriteLine($"Could not find domain with name '{domainName}'.");
@@ -346,12 +345,12 @@ namespace Libvirt
         /// <returns>List of storag epools</returns>
         public IEnumerable<LibvirtStoragePool> ListStoragePools(bool includeDefined = false)
         {
-            int nbPools = NativeVirConnect.NumOfStoragePools(_connPtr);
+            int nbPools = NativeVirConnect.NumOfStoragePools(ConnectionPtr);
             string[] poolNames = new string[nbPools];
-            if (NativeVirConnect.ListStoragePools(_connPtr, ref poolNames, nbPools) < 0)
+            if (NativeVirConnect.ListStoragePools(ConnectionPtr, ref poolNames, nbPools) < 0)
                 throw new LibvirtQueryException();
 
-            foreach (IntPtr poolPtr in poolNames.Select(poolName => NativeVirStoragePool.LookupByName(_connPtr, poolName)))
+            foreach (IntPtr poolPtr in poolNames.Select(poolName => NativeVirStoragePool.LookupByName(ConnectionPtr, poolName)))
             {
                 try
                 {
@@ -373,12 +372,12 @@ namespace Libvirt
 
             if (includeDefined)
             {
-                nbPools = NativeVirConnect.NumOfDefinedStoragePools(_connPtr);
+                nbPools = NativeVirConnect.NumOfDefinedStoragePools(ConnectionPtr);
                 poolNames = new string[nbPools];
-                if (NativeVirConnect.ListDefinedStoragePools(_connPtr, ref poolNames, nbPools) < 0)
+                if (NativeVirConnect.ListDefinedStoragePools(ConnectionPtr, ref poolNames, nbPools) < 0)
                     throw new LibvirtQueryException();
 
-                foreach (IntPtr poolPtr in poolNames.Select(poolName => NativeVirStoragePool.LookupByName(_connPtr, poolName)))
+                foreach (IntPtr poolPtr in poolNames.Select(poolName => NativeVirStoragePool.LookupByName(ConnectionPtr, poolName)))
                 {
                     try
                     {
@@ -414,7 +413,7 @@ namespace Libvirt
             if (cachedOnly)
                 return null;
 
-            var poolPtr = NativeVirStoragePool.LookupByUUID(_connPtr, uniqueId.ToUUID());
+            var poolPtr = NativeVirStoragePool.LookupByUUID(ConnectionPtr, uniqueId.ToUUID());
             if (poolPtr == IntPtr.Zero)
             {
                 if (_storagePoolCache.TryRemove(uniqueId, out pool))
@@ -445,7 +444,7 @@ namespace Libvirt
         /// <returns>Storage pool or NULL</returns>
         public LibvirtStoragePool GetStoragePoolByName(string poolName)
         {
-            var poolPtr = NativeVirStoragePool.LookupByName(_connPtr, poolName);
+            var poolPtr = NativeVirStoragePool.LookupByName(ConnectionPtr, poolName);
             if (poolPtr == IntPtr.Zero)
             {
                 Trace.WriteLine($"Could not find storage pool with name '{poolName}'.");
@@ -476,6 +475,7 @@ namespace Libvirt
         {
             get { return ListStoragePools(includeDefined: true); }
         }
+        #endregion
 
         #region Events
         private readonly object _storagePoolLifecycleEventReceivedLock = new object();
@@ -538,15 +538,8 @@ namespace Libvirt
             if (handler != null)
                 handler.Invoke(pool, args);
         }
-        #endregion
 
-        #endregion
-
-        #region Storage Volumes
-        private readonly ConcurrentDictionary<string, LibvirtStorageVolume> _storageVolumeCache =
-                new ConcurrentDictionary<string, LibvirtStorageVolume>();
-
-        internal ConcurrentDictionary<string, LibvirtStorageVolume> VolumeCache => _storageVolumeCache;
+        internal ConcurrentDictionary<string, LibvirtStorageVolume> VolumeCache { get; } = new ConcurrentDictionary<string, LibvirtStorageVolume>();
 
         public IEnumerable<LibvirtStorageVolume> ListStorageVolumes()
         {
@@ -574,15 +567,15 @@ namespace Libvirt
             LibvirtStorageVolume volume;
             if (cachedOnly)
             {
-                if (_storageVolumeCache.TryGetValue(volumeKey, out volume))
+                if (VolumeCache.TryGetValue(volumeKey, out volume))
                     return volume;
                 return null;
             }
 
-            var volumePtr = NativeVirStorageVol.LookupByKey(_connPtr, volumeKey);
+            var volumePtr = NativeVirStorageVol.LookupByKey(ConnectionPtr, volumeKey);
             if (volumePtr == IntPtr.Zero)
             {
-                if (_storageVolumeCache.TryRemove(volumeKey, out volume))
+                if (VolumeCache.TryRemove(volumeKey, out volume))
                     volume.Dispose();
 
                 Trace.WriteLine($"Could not find volume with key '{volumeKey}'.");
@@ -601,7 +594,7 @@ namespace Libvirt
                     if (NativeVirStoragePool.GetUUID(poolPtr, poolUUID) < 0)
                         throw new LibvirtQueryException();
 
-                    return _storageVolumeCache.GetOrAdd(volumeKey, (id) =>
+                    return VolumeCache.GetOrAdd(volumeKey, (id) =>
                     {
                         NativeVirStorageVol.Ref(volumePtr);
                         return new LibvirtStorageVolume(this, poolUUID.ToGuid(), volumeKey, volumePtr);
@@ -623,7 +616,7 @@ namespace Libvirt
             if (diskSource == null)
                 return null;
 
-            return GetVolumeByKey(diskSource.GetKey());
+            return GetVolumeByKey(diskSource.GetPath());
         }
         #endregion
 
@@ -640,27 +633,16 @@ namespace Libvirt
         /// </summary>
         /// <param name="conn"></param>
         /// <returns></returns>
-        static public LibvirtConnection Open(string conn = @"qemu:///system")
+        static public LibvirtConnection Open(string conn = @"qemu:///system", LibvirtConfiguration configuration = null)
         {
-            return new LibvirtConnection(NativeVirConnect.Open(conn));
+            return new LibvirtConnection(NativeVirConnect.Open(conn), configuration);
         }
 
         #endregion
 
-        /// <summary>
-        /// Disposes the connection.
-        /// </summary>
-        public void Close()
-        {
-            this.Dispose();
-        }
-
         #region Internal 
 
-        internal IntPtr ConnectionPtr
-        {
-            get { return _connPtr; }
-        }
+        internal IntPtr ConnectionPtr { get; private set; }
 
         internal CancellationToken ShutdownToken
         {
@@ -694,20 +676,20 @@ namespace Libvirt
 
             _domainCache.Clear();
 
-            foreach (var storageVolume in _storageVolumeCache.Values)
+            foreach (var storageVolume in VolumeCache.Values)
                 storageVolume.Dispose();
 
-            _storageVolumeCache.Clear();
+            VolumeCache.Clear();
 
             foreach (var storagePool in _storagePoolCache.Values)
                 storagePool.Dispose();
 
             _storagePoolCache.Clear();
 
-            _lvNode.Dispose();
+            Node.Dispose();
 
-            if (_connPtr != IntPtr.Zero)
-                NativeVirConnect.Close(_connPtr);
+            if (ConnectionPtr != IntPtr.Zero)
+                NativeVirConnect.Close(ConnectionPtr);
         }
         #endregion
     }

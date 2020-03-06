@@ -38,7 +38,7 @@ namespace Libvirt
 
         public override string ToString()
         {
-            return $"MAC Address {Address}";
+            return $"{Address}";
         }
     }
 }

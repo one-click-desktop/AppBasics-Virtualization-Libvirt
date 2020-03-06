@@ -30,15 +30,11 @@ using System.Xml.Serialization;
 namespace Libvirt
 {
     [Serializable]
-    [XmlRoot(ElementName = "source", Namespace = "")]
-    public class VirXmlDomainInterfaceSource
+    public enum VirXmlAddressType
     {
-        [XmlAttribute(AttributeName = "network")]
-        public string Network { get; set; }
-
-        public override string ToString()
-        {
-            return $"{Network}";
-        }
+        [XmlEnum("pci")]
+        PCI,
+        [XmlEnum("drive")]
+        DRIVE,
     }
 }

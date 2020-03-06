@@ -23,22 +23,23 @@
  * limitations under the License.
  */
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Xml.Serialization;
+using System.Runtime.InteropServices;
 
 namespace Libvirt
 {
-    [Serializable]
-    [XmlRoot(ElementName = "source", Namespace = "")]
-    public class VirXmlDomainInterfaceSource
+    ///<summary>
+    /// class for libvirt qemu specific methods
+    ///</summary>
+    public class NativeVirQemu
     {
-        [XmlAttribute(AttributeName = "network")]
-        public string Network { get; set; }
-
-        public override string ToString()
-        {
-            return $"{Network}";
-        }
+        /// <summary>
+        /// The error object is kept in thread local storage, so separate threads can safely access this concurrently.
+        /// Reset the last error caught on that connection.
+        /// </summary>
+        /// <param name="conn">
+        /// A <see cref="IntPtr"/> pointer to the hypervisor connection.
+        /// </param>
+        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virDomainQemuMonitorCommand")]
+        public static extern int MonitorCommand(IntPtr domain, string cmd, out string result, VirDomainQemuMonitorCommandFlags flags);
     }
 }

@@ -45,15 +45,20 @@ namespace Libvirt
         [XmlElement("host", IsNullable = true, Namespace = "")]
         public VirXmlDomainDiskSourceHost Host { get; set; }
 
-        internal string GetKey()
+        public string GetPath()
         {
             if (!string.IsNullOrEmpty(File))
-                return File;
+                return $"file:/{File}";
 
             if (!string.IsNullOrEmpty(Protocol) && Host != null)
                 return $"{Protocol}://{Host.Name}/{Name}";
 
             return null;
+        }
+
+        public override string ToString()
+        {
+            return GetPath();
         }
     }
 }

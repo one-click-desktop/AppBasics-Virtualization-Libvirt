@@ -385,7 +385,7 @@ namespace Libvirt
         ///<param name="flags">Open flags</param>
         ///<returns>a pointer to the hypervisor connection or NULL in case of error URIs are documented at http://libvirt.org/uri.html </returns>
         [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virConnectOpenAuth")]
-        private static extern IntPtr OpenAuth(string name, ref ConnectAuthUnmanaged auth, int flags);
+        private static extern IntPtr OpenAuth(string name, ref VirConnectAuthUnmanaged auth, int flags);
         /// <summary>
         /// This function should be called first to get a connection to the Hypervisor. If necessary, authentication will be performed fetching credentials via the callback See virConnectOpen for notes about environment variables which can have an effect on opening drivers
         /// </summary>
@@ -396,7 +396,7 @@ namespace Libvirt
         public static IntPtr OpenAuth(string name, ref VirConnectAuth auth, int flags)
         {
             // Create a structure that hold cbdata and the callback target
-            OpenAuthManagedCB cbAndUserData = new OpenAuthManagedCB();
+            VirOpenAuthManagedCB cbAndUserData = new VirOpenAuthManagedCB();
             cbAndUserData.cbdata = auth.cbdata;
             cbAndUserData.cbManaged = auth.cb;
             // Pass the structure as cbdata
@@ -404,7 +404,7 @@ namespace Libvirt
             Marshal.StructureToPtr(cbAndUserData, cbAndUserDataPtr, true);
 
             // Create the real ConnectAuth structure, it will call OpenAuthCallbackFromUnmanaged via callback
-            ConnectAuthUnmanaged connectAuth = new ConnectAuthUnmanaged();
+            VirConnectAuthUnmanaged connectAuth = new VirConnectAuthUnmanaged();
             connectAuth.cbdata = cbAndUserDataPtr;
             connectAuth.cb = OpenAuthCallbackFromUnmanaged;
             connectAuth.CredTypes = auth.CredTypes;
@@ -415,7 +415,7 @@ namespace Libvirt
         private static int OpenAuthCallbackFromUnmanaged(IntPtr creds, uint ncreds, IntPtr cbdata)
         {
             // Give back the structure that hold cbdata and the callback target
-            OpenAuthManagedCB cbAndUserData = (OpenAuthManagedCB)Marshal.PtrToStructure(cbdata, typeof(OpenAuthManagedCB));
+            VirOpenAuthManagedCB cbAndUserData = (VirOpenAuthManagedCB)Marshal.PtrToStructure(cbdata, typeof(VirOpenAuthManagedCB));
             int offset = 0;
             int credIndex = 0;
 

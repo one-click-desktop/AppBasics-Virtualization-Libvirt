@@ -31,14 +31,20 @@ namespace Libvirt
 {
     [Serializable]
     [XmlRoot(ElementName = "source", Namespace = "")]
-    public class VirXmlDomainInterfaceSource
+    public class VirXmlStoragePoolSource
     {
-        [XmlAttribute(AttributeName = "network")]
-        public string Network { get; set; }
+        [XmlElement("name")]
+        public string Name { get; set; }
 
-        public override string ToString()
+        [XmlElement("host", IsNullable = true, Namespace = "")]
+        public VirXmlStoragePoolSourceHost Host { get; set; }
+
+        [XmlElement("dir", IsNullable = true, Namespace = "")]
+        public VirXmlStoragePoolSourceDir Directory { get; set; }
+
+        internal string GetPath(string protocol)
         {
-            return $"{Network}";
+            return $"{protocol}://{Host.Name}/{Name}{Directory.Path}";
         }
     }
 }

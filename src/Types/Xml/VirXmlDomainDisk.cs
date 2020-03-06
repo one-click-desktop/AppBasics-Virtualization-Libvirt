@@ -39,8 +39,17 @@ namespace Libvirt
         [XmlAttribute(AttributeName = "device")]
         public VirXmlDomainDiskDevice Device { get; set; }
 
-        [XmlElement(ElementName = "source", IsNullable = false, Namespace = "")]
+        [XmlElement("driver")]
+        public VirXmlDomainDiskDriver Driver { get; set; }
+
+        [XmlElement("source")]
         public VirXmlDomainDiskSource Source { get; set; }
+
+        [XmlElement("target")]
+        public VirXmlDomainDiskTarget Target { get; set; }
+
+        [XmlElement("address")]
+        public VirXmlDeviceAddress Address { get; set; }
 
         [XmlElement("readonly", IsNullable = true)]
         private string _readonly { get; set; }

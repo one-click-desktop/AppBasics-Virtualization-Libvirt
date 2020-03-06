@@ -7,7 +7,7 @@
     <Company>IDNT Europe GmbH</Company>
     <Product>Libvirt-dotnet</Product>
     <Description>.NET interface to libvirt, the toolkit to manage virtualization platforms like KVM, QEMU, Xen, Virtuozzo, VMWare ESX, LXC and more.</Description>
-    <Copyright>The Livirt-CSharp authors.</Copyright>
+    <Copyright>IDNT and the Livirt-dotnet contributors.</Copyright>
     <PackageLicenseUrl>https://www.gnu.org/licenses/lgpl-2.1.en.html</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/IDNT/libvirt-dotnet</PackageProjectUrl>
     <RepositoryUrl>https://github.com/IDNT/libvirt-dotnet</RepositoryUrl>
@@ -17,7 +17,7 @@
     <RootNamespace>Libvirt</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AssemblyVersion>1.0.1.3</AssemblyVersion>
-    <FileVersion>1.0.1.2</FileVersion>
+    <FileVersion>1.0.1.3</FileVersion>
     <Version>1.0.3</Version>
   </PropertyGroup>
   <ItemGroup>

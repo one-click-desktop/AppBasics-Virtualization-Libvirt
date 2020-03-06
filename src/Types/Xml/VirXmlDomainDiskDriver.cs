@@ -30,15 +30,13 @@ using System.Xml.Serialization;
 namespace Libvirt
 {
     [Serializable]
-    [XmlRoot(ElementName = "source", Namespace = "")]
-    public class VirXmlDomainInterfaceSource
+    [XmlRoot(ElementName = "driver", Namespace = "")]
+    public class VirXmlDomainDiskDriver
     {
-        [XmlAttribute(AttributeName = "network")]
-        public string Network { get; set; }
+        [XmlAttribute(AttributeName = "name")]
+        public string Name { get; set; }
 
-        public override string ToString()
-        {
-            return $"{Network}";
-        }
+        [XmlAttribute(AttributeName = "type")]
+        public string Type { get; set; }
     }
 }

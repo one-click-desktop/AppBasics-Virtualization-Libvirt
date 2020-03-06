@@ -25,20 +25,20 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Xml.Serialization;
 
 namespace Libvirt
 {
-    [Serializable]
-    [XmlRoot(ElementName = "source", Namespace = "")]
-    public class VirXmlDomainInterfaceSource
+    [Flags]
+    public enum VirDomainQemuMonitorCommandFlags : uint
     {
-        [XmlAttribute(AttributeName = "network")]
-        public string Network { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        VIR_DOMAIN_QEMU_MONITOR_COMMAND_DEFAULT = 0,
 
-        public override string ToString()
-        {
-            return $"{Network}";
-        }
+        /// <summary>
+        /// cmd is in HMP
+        /// </summary>
+        VIR_DOMAIN_QEMU_MONITOR_COMMAND_HMP = 1
     }
 }

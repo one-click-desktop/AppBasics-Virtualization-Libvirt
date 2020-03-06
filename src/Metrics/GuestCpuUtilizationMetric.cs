@@ -25,14 +25,17 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 namespace Libvirt.Metrics
 {
     public class GuestCpuUtilizationMetric
     {
         private readonly int _cpuCores = 0;
+        private int _seconds = 0;
         private decimal _lastValue = 0;
-        private List<Int16> _values = null;
+        private List<Int32> _perSecondValues = null;
+        private List<Int32> _perMinuteValues = null;
         private readonly object _lock = new object();
         private DateTime _tsLastValue;
 
@@ -42,23 +45,50 @@ namespace Libvirt.Metrics
                 throw new ArgumentException("A minimum of one cpu core must be specified.", "cpuCores");
             _cpuCores = cpuCores;
             _tsLastValue = DateTime.UtcNow;
-            _values = new List<Int16>(historySize < 2 ? 2 : historySize) { 0 };
+            _perSecondValues = new List<Int32>(historySize < 2 ? 2 : historySize) { 0 };
+            _perMinuteValues = new List<Int32>(historySize < 2 ? 2 : historySize) { 0 };
         }
 
         /// <summary>
         /// Returns the guests cpu utilization in percent
         /// </summary>
-        public decimal Current
+        public Int32 LastSecond
         {
-            get { lock (_lock) return _values[0]; }
+            get { lock (_lock) return _perSecondValues[0]; }
+        }
+
+        /// <summary>
+        /// Returns the guests cpu utilization in percent
+        /// </summary>
+        public Int32 LastMinute
+        {
+            get { lock (_lock) return Convert.ToInt32(_perSecondValues.Take(60).Average()); }
         }
 
         /// <summary>
         /// Returns a series of cpu utilizations (last historySize elements) with the most recent values first.
         /// </summary>
-        public IEnumerable<Int16> Values
+        public IEnumerable<Int32> PerSecondValues
         {
-            get { lock (_lock) return _values.ToArray(); }
+            get { lock (_lock) return _perSecondValues.ToArray(); }
+        }
+
+        /// <summary>
+        /// Returns a series of cpu utilizations (last historySize elements) with the most recent values first.
+        /// </summary>
+        public IEnumerable<Int32> PerMinuteValues
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    var values = new int[_perMinuteValues.Count + 1];
+                    values[0] = LastMinute;
+                    _perMinuteValues.CopyTo(values, 1);
+                    return values;
+                }
+
+            }
         }
 
         internal void Update(ulong cpuTime, ulong systemTime, ulong userTime)
@@ -73,9 +103,18 @@ namespace Libvirt.Metrics
 
             lock (_lock)
             {
-                _values.Insert(0, Convert.ToInt16(pct));
-                if (_values.Count == _values.Capacity)
-                    _values.RemoveAt(_values.Capacity - 1);
+                _perSecondValues.Insert(0, Convert.ToInt32(pct));
+                if (_perSecondValues.Count == _perSecondValues.Capacity)
+                    _perSecondValues.RemoveAt(_perSecondValues.Capacity - 1);
+
+                _seconds++;
+                if (_seconds >= 60)
+                {
+                    _seconds = 0;
+                    _perMinuteValues.Insert(0, Convert.ToInt32(_perSecondValues.Take(60).Average()));
+                    if (_perMinuteValues.Count == _perMinuteValues.Capacity)
+                        _perMinuteValues.RemoveAt(_perMinuteValues.Capacity - 1);
+                }
             }
 
             _lastValue = time;

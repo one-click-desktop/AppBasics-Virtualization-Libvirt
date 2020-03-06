@@ -23,8 +23,6 @@
  * limitations under the License.
  */
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Xml.Serialization;
 
 namespace Libvirt
@@ -36,18 +34,21 @@ namespace Libvirt
         [XmlAttribute(AttributeName = "type")]
         public VirXmlDomainInterfaceType Type { get; set; }
 
-        [XmlAttribute(AttributeName = "mac")]
+        [XmlElement("mac")]
         public VirXmlDomainInterfaceMAC MAC { get; set; }
 
-        [XmlAttribute(AttributeName = "source")]
-        public VirXmlDomainInterfaceMAC Source { get; set; }
+        [XmlElement("source")]
+        public VirXmlDomainInterfaceSource Source { get; set; }
 
-        [XmlAttribute(AttributeName = "model")]
+        [XmlElement("model")]
         public VirXmlDomainInterfaceModel Model { get; set; }
+
+        [XmlElement("address")]
+        public VirXmlDeviceAddress Address { get; set; }
 
         public override string ToString()
         {
-            return $"Network Interface";
+            return $"{Type} {Source} {MAC} ({Address})";
         }
     }
 }

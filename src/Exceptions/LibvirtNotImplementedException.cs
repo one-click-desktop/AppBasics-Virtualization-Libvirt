@@ -1,7 +1,7 @@
 ﻿/*
  * Libvirt-dotnet
  * 
- * Copyright 2020 IDNT (https://www.idnt.net) and Libvirt-dotnet contributors.
+ * Copyright 2020 IDNT (https://www.idnt.net) and Libvirt-dotnet contributors..
  * 
  * This project incorporates work by the following original authors and contributors
  * to libvirt-csharp:
@@ -24,21 +24,29 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Security;
 using System.Text;
-using System.Xml.Serialization;
 
 namespace Libvirt
 {
-    [Serializable]
-    [XmlRoot(ElementName = "source", Namespace = "")]
-    public class VirXmlDomainInterfaceSource
+    /// <summary>
+    /// Libvirt exception
+    /// </summary>
+    public class LibvirtNotImplementedException : LibvirtException
     {
-        [XmlAttribute(AttributeName = "network")]
-        public string Network { get; set; }
-
-        public override string ToString()
+        /// <summary>
+        /// Initializes a new instance
+        /// </summary>
+        public LibvirtNotImplementedException()
+            : base("The requested operation is not implemented.")
         {
-            return $"{Network}";
+        }
+
+        public LibvirtNotImplementedException(string message)
+           : base(message)
+        {
         }
     }
 }

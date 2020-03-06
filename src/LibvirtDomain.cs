@@ -163,6 +163,46 @@ namespace Libvirt
             }
         }
 
+        /// <summary>
+        /// Returns the libvirt driver for this domain (qemu|kvm|esx|hyperv|...)
+        /// </summary>
+        public string DriverType
+        {
+            get { return XmlDescription.Attributes["type"].Value; }
+        }
+
+        /// <summary>
+        /// Determines the time of the ast configuration or state change.
+        /// HACK: Ugly hack which is QEMU and distribution specific. Checks last write on LibvirtConfiguration->QemuDomainRuntimeConfigurationPath/[domain].xml
+        /// </summary>
+        public DateTime ModifiedAt
+        {
+            get
+            {
+                return IsActive
+                    ? File.GetLastWriteTimeUtc(Path.Combine(_conn.Configuration.QemuDomainRunPath, $"{Name}.xml"))
+                    : (
+                        File.Exists(Path.Combine(_conn.Configuration.QemuDomainLogPath, $"{Name}.log"))
+                            ? File.GetLastWriteTimeUtc(Path.Combine(_conn.Configuration.QemuDomainLogPath, $"{Name}.log"))
+                            : File.GetLastWriteTimeUtc(Path.Combine(_conn.Configuration.QemuDomainEtcPath, $"{Name}.xml"))
+                    );
+            }
+        }
+
+        /// <summary>
+        /// Time in seconds since the domain was started
+        /// HACK: Ugly hack which is QEMU and distribution specific. Checks creation date of LibvirtConfiguration->QemuDomainRuntimeConfigurationPath/[domain].pid
+        /// </summary>
+        public double UptimeSeconds
+        {
+            get
+            {
+                return IsActive
+                  ? DateTime.UtcNow.Subtract(File.GetCreationTimeUtc(Path.Combine(_conn.Configuration.QemuDomainRunPath, $"{Name}.pid"))).TotalSeconds
+                  : 0;
+            }
+        }
+        
         public VirDomainInfo GetInfo()
         {
             if (_virDomainInfo == null && NativeVirDomain.GetInfo(_domainPtr, (_virDomainInfo = new VirDomainInfo())) < 0)
@@ -180,7 +220,11 @@ namespace Libvirt
         {
             get
             {
-                if (_xmlDescription == null)
+                XmlDocument document = null;
+                lock (_xmlDescrLock)
+                    document = _xmlDescription;
+
+                if (document == null)
                 {
                     lock (_xmlDescrLock)
                     {
@@ -195,9 +239,11 @@ namespace Libvirt
                             _xmlDescription = new XmlDocument();
                             _xmlDescription.LoadXml(xmlText);
                         }
+
+                        document = _xmlDescription;
                     }
                 }
-                return _xmlDescription;
+                return document;
             }
         }
 
@@ -338,6 +384,15 @@ namespace Libvirt
         #region Control
 
         /// <summary>
+        /// Launch a defined domain. If the call succeeds the domain moves from the defined to the running domains pools. The domain will be paused only if restoring from managed state created from a paused domain.
+        /// </summary>
+        /// <returns>True on success</returns>
+        public bool Create()
+        {
+            return NativeVirDomain.Create(_domainPtr) == 0;
+        }
+
+        /// <summary>
         /// Reset a domain immediately without any guest OS shutdown. Reset emulates the power reset button on a machine, where all hardware sees the RST line set and reinitializes internal state.
         /// </summary>
         /// <returns>True on success</returns>
@@ -382,6 +437,21 @@ namespace Libvirt
             return NativeVirDomain.ManagedSave(_domainPtr, VirDomainSaveRestoreFlags.Empty) == 0;
         }
 
+        public void SetConsolePassword(string password)
+        {
+            switch(DriverType)
+            {
+                case "qemu":
+                case "kvm":
+                    string result = null;
+                    if (NativeVirQemu.MonitorCommand(_domainPtr, $"change vnc password {password}", out result, 
+                        VirDomainQemuMonitorCommandFlags.VIR_DOMAIN_QEMU_MONITOR_COMMAND_HMP) < 0)
+                        throw new LibvirtException($"SetConsolePassword failed: {result}");
+                    break;
+                default:
+                    throw new LibvirtNotImplementedException();
+            }
+        }
         #endregion
 
         #region IDisposable implementation
