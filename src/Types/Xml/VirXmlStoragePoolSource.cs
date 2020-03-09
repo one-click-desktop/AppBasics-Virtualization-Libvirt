@@ -44,7 +44,7 @@ namespace Libvirt
 
         internal string GetPath(string protocol)
         {
-            return $"{protocol}://{Host.Name}/{Name}{Directory.Path}";
+            return $"{protocol}://{Host.Name}/{Name}{Directory.Path.TrimEnd('/')}";
         }
     }
 }

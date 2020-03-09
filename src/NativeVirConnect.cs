@@ -16,6 +16,11 @@ namespace Libvirt
     /// </summary>
     public class NativeVirConnect
     {
+        static NativeVirConnect()
+        {
+            NativeVirInitialize.Initialize();
+        }
+
         private const int MaxStringLength = 1024;
 
         /// <summary>
@@ -510,7 +515,7 @@ namespace Libvirt
         /// <param name="ff">optional function to deallocate opaque when not used anymore</param>
         /// <returns>t shall take a reference to it, by calling virDomainRef. The reference can be released once the object is no longer required by calling virDomainFree. Returns 0 on success, -1 on failure</returns>
         [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virConnectDomainEventRegisterAny")]
-        public static extern int DomainEventRegisterAny(IntPtr conn, IntPtr dom, int eventId,
+        public static extern int DomainEventRegisterAny(IntPtr conn, IntPtr dom, VirDomainEventID eventId,
                                                                 [MarshalAs(UnmanagedType.FunctionPtr)] VirConnectDomainEventCallback cb,
                                                                 IntPtr opaque, [MarshalAs(UnmanagedType.FunctionPtr)] VirFreeCallback ff);
 

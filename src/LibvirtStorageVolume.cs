@@ -124,7 +124,11 @@ namespace Libvirt
         {
             get
             {
-                if (_xmlDescription == null)
+                XmlDocument document;
+                lock (_xmlDescrLock)
+                    document = _xmlDescription;
+                
+                if (document == null)
                 {
                     lock (_xmlDescrLock)
                     {
@@ -136,25 +140,26 @@ namespace Libvirt
                             _xmlDescription = new XmlDocument();
                             _xmlDescription.LoadXml(xmlText);
                         }
+                        document = _xmlDescription;
                     }
                 }
-                return _xmlDescription;
+                return document;
             }
         }
 
         public string Format
         {
-            get { return this.XmlDescription.SelectSingleNode("//target/format/@type").Value; }
+            get { return this.XmlDescription.DocumentElement.SelectSingleNode("//target/format/@type").Value; }
         }
 
         public DateTime CreatedAt
         {
-            get { return DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(this.XmlDescription.SelectSingleNode("//target/timestamps/ctime").Value.Split('.').First())).DateTime; }
+            get { return DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(this.XmlDescription.SelectSingleNode("//target/timestamps/ctime").InnerText.Split('.').First())).DateTime; }
         }
 
         public DateTime ModifiedAt
         {
-            get { return DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(this.XmlDescription.SelectSingleNode("//target/timestamps/mtime").Value.Split('.').First())).DateTime; }
+            get { return DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(this.XmlDescription.SelectSingleNode("//target/timestamps/mtime").InnerText.Split('.').First())).DateTime; }
         }
 
         #endregion

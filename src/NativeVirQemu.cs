@@ -24,6 +24,7 @@
  */
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Libvirt
 {
@@ -32,14 +33,23 @@ namespace Libvirt
     ///</summary>
     public class NativeVirQemu
     {
-        /// <summary>
-        /// The error object is kept in thread local storage, so separate threads can safely access this concurrently.
-        /// Reset the last error caught on that connection.
-        /// </summary>
-        /// <param name="conn">
-        /// A <see cref="IntPtr"/> pointer to the hypervisor connection.
-        /// </param>
-        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virDomainQemuMonitorCommand")]
-        public static extern int MonitorCommand(IntPtr domain, string cmd, out string result, VirDomainQemuMonitorCommandFlags flags);
+        private const int MaxStringLength = 1024;
+
+        [DllImport("libvirt-qemu-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virDomainQemuMonitorCommand")]
+        private static extern int MonitorCommandImpl(IntPtr domain, string cmd, [Out] StringBuilder result, uint flags);
+
+        public static int MonitorCommand(IntPtr domain, [MarshalAs(UnmanagedType.LPStr)]string cmd, ref string result, VirDomainQemuMonitorCommandFlags flags)
+        {
+            var sb = new StringBuilder();
+            //IntPtr buf = Marshal.AllocCoTaskMem(MaxStringLength + 1);
+            //Marshal.WriteByte(buf, MaxStringLength, 0);
+            //IntPtr buf2 = buf;
+            int ret = MonitorCommandImpl(domain, cmd, sb, (uint)flags);
+            if (ret == 0)
+                result = sb.ToString();
+                //result = MarshalHelper.ptrToString(buf);
+                //Marshal.FreeCoTaskMem(buf);
+            return ret;
+        }
     }
 }

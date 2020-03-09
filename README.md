@@ -8,7 +8,8 @@ libvirt bindings for .NET, but we thought it would be useful to have a little
 more .NETish interface for working with libvirt. 
 
 Note that this is still a work in progress. Expect some breaking changes for 
-the time being. The code runs fine on mono (tested with mono 6.8 on RHEL 8).
+the time being. The code runs fine on mono and dotnet core (tested with mono 
+6.8 and dotnet-sdk 3.1 on RHEL 8). Operations are thread-safe.
 
 # Nuget package
 
@@ -96,6 +97,10 @@ You need a screenshot of a domains console? Here you go:
 			d.GetScreenshot(fs, System.Drawing.Imaging.ImageFormat.Jpeg);
 	}
 ```
+
+# Version History
+
+1.0.1.4 Added donet core 3.1 support 
 
 # License
 

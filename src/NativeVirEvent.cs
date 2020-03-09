@@ -15,6 +15,11 @@ namespace Libvirt
     /// </summary>
     public class NativeVirEvent
     {
+        static NativeVirEvent()
+        {
+            NativeVirInitialize.Initialize();
+        }
+
         ///<summary>
         /// Function to install callbacks
         ///</summary>

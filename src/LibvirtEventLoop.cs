@@ -45,8 +45,12 @@ namespace Libvirt
 
             _connection.ShutdownToken.Register(ShutdownEventLoop);
 
-            if ((_domainEventHandlerRegistrationId = NativeVirConnect.DomainEventRegister(
-                _connection.ConnectionPtr, DomainEventCallback, IntPtr.Zero, FreeCallbackFunc)) < 0)
+            //if ((_domainEventHandlerRegistrationId = NativeVirConnect.DomainEventRegister(
+            //    _connection.ConnectionPtr, DomainEventCallback, IntPtr.Zero, FreeCallbackFunc)) < 0)
+            //    throw new LibvirtException();
+            if ((_domainEventHandlerRegistrationId = NativeVirConnect.DomainEventRegisterAny(
+                _connection.ConnectionPtr, IntPtr.Zero, VirDomainEventID.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
+                DomainEventCallback, IntPtr.Zero, FreeCallbackFunc)) < 0)
                 throw new LibvirtException();
 
             if ((_storagePoolLifecycleEventHandlerRegistrationId = NativeVirConnect.StoragePoolEventRegisterAny(
@@ -60,7 +64,7 @@ namespace Libvirt
                StoragePoolRefreshEventCallback, IntPtr.Zero, FreeCallbackFunc)) < 0)
                 throw new LibvirtException();
 
-            _lvEventLoopTask = Task.Factory.StartNew(EventLoopTask);
+            _lvEventLoopTask = Task.Factory.StartNew(EventLoopTask, TaskCreationOptions.DenyChildAttach | TaskCreationOptions.LongRunning);
         }
 
         private Task _lvEventLoopTask = null;
@@ -92,7 +96,8 @@ namespace Libvirt
                     continue;
                 }
 
-                Libvirt.NativeVirEvent.RunDefaultImpl();
+                if (Libvirt.NativeVirEvent.RunDefaultImpl() < 0)
+                    throw new LibvirtException();
             }
 
             Trace.WriteLine("Event loop task ended.");

@@ -24,6 +24,7 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Text;
@@ -32,14 +33,17 @@ namespace Libvirt
 {
     internal class GraphicsHelper
     {
-        static public Bitmap PortablePixmapToBitmap(Stream stream)
+        static public Bitmap PortablePixmapToBitmap(Stream stream, Color? noVideoColor = null)
         {
+            bool isAllBlack = noVideoColor.HasValue;
+            var nc = noVideoColor.HasValue ? noVideoColor.Value.R + noVideoColor.Value.G + noVideoColor.Value.B : 0;
+
             using (var reader = new BinaryReader(stream))
             {
                 if (reader.ReadChar() != 'P' || reader.ReadChar() != '6')
                     return null;
 
-                reader.ReadChar(); 
+                reader.ReadChar();
                 string widths = "", heights = "";
 
                 char temp;
@@ -55,11 +59,22 @@ namespace Libvirt
                 reader.ReadChar();
                 int width = int.Parse(widths),
                     height = int.Parse(heights);
-
                 Bitmap bitmap = new Bitmap(width, height);
+
+                Color c;
                 for (int y = 0; y < height; y++)
                     for (int x = 0; x < width; x++)
-                        bitmap.SetPixel(x, y, Color.FromArgb(reader.ReadByte(), reader.ReadByte(), reader.ReadByte()));
+                    {
+                        bitmap.SetPixel(x, y, (c = Color.FromArgb(reader.ReadByte(), reader.ReadByte(), reader.ReadByte())));
+                        if (isAllBlack && (c.R + c.G + c.B) != nc)
+                            isAllBlack = false;
+                    }
+
+                if (isAllBlack)
+                {
+                    bitmap.Dispose();
+                    return null;
+                }
                 return bitmap;
             }
         }

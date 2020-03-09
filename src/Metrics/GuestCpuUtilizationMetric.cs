@@ -31,7 +31,7 @@ namespace Libvirt.Metrics
 {
     public class GuestCpuUtilizationMetric
     {
-        private readonly int _cpuCores = 0;
+        private int _cpuCores = 0;
         private int _seconds = 0;
         private decimal _lastValue = 0;
         private List<Int32> _perSecondValues = null;
@@ -89,6 +89,13 @@ namespace Libvirt.Metrics
                 }
 
             }
+        }
+
+        internal void SetCpuCount(int cpuCores)
+        {
+            if (cpuCores < 1)
+                throw new ArgumentException("A minimum of one cpu core must be specified.", "cpuCores");
+            _cpuCores = cpuCores;
         }
 
         internal void Update(ulong cpuTime, ulong systemTime, ulong userTime)

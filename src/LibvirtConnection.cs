@@ -56,12 +56,12 @@ namespace Libvirt
 
             Configuration = configuration ?? new LibvirtConfiguration();
 
+            _lvEvents = new LibvirtEventLoop(this);
+
             SetKeepAlive(LibvirtConfiguration.DEFAULT_LIBVIRT_KEEPALIVE_INTERVAL, 
                          LibvirtConfiguration.DEFAULT_LIBVIRT_KEEPALIVE_COUNT);
 
             Node = new LibvirtNode(this);
-
-            _lvEvents = new LibvirtEventLoop(this);
 
             _metricsTicker = new Timer(MetricsTickerCallback, null,
                 Configuration.MetricsIntervalSeconds * 1000,
@@ -623,6 +623,8 @@ namespace Libvirt
         #region Static
         static LibvirtConnection()
         {
+            NativeVirInitialize.Initialize();
+
             if (NativeVirEvent.RegisterDefaultImpl() != 0)
                 throw new LibvirtException();
             Trace.WriteLine("Registered default event loop implementation.");

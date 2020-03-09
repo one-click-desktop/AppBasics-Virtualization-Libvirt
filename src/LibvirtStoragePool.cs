@@ -132,7 +132,7 @@ namespace Libvirt
         /// </summary>
         public string DriverType
         {
-            get { return XmlDescription.Attributes["type"].Value; }
+            get { return XmlDescription.DocumentElement.Attributes["type"].Value; }
         }
 
         /// <summary>
@@ -178,7 +178,8 @@ namespace Libvirt
                     {
                         if (_xmlDescription == null)
                         {
-                            string xmlText = NativeVirStoragePool.GetXMLDesc(_poolPtr, VirDomainXMLFlags.VIR_DOMAIN_XML_SECURE | VirDomainXMLFlags.VIR_DOMAIN_XML_INACTIVE);
+                            string xmlText = NativeVirStoragePool.GetXMLDesc(_poolPtr, 
+                                VirDomainXMLFlags.VIR_DOMAIN_XML_SECURE);
                             if (string.IsNullOrWhiteSpace(xmlText))
                                 throw new LibvirtQueryException();
                             _xmlDescription = new XmlDocument();

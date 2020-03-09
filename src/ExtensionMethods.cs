@@ -35,8 +35,8 @@ namespace Libvirt
         {
             if (uuid == null || uuid.Length != 16)
                 throw new ArgumentException("uuid");
-
-            var rfc4122bytes = uuid.Select(t => Convert.ToByte(t)).ToArray();
+            //Convert.ToByte(t)
+            var rfc4122bytes = uuid.Select(t => (byte)t).ToArray();
 
             Array.Reverse(rfc4122bytes, 0, 4);
             Array.Reverse(rfc4122bytes, 4, 2);
@@ -52,8 +52,8 @@ namespace Libvirt
             Array.Reverse(rfc4122bytes, 0, 4);
             Array.Reverse(rfc4122bytes, 4, 2);
             Array.Reverse(rfc4122bytes, 6, 2);
-
-            return rfc4122bytes.Select(t => Convert.ToChar(t)).ToArray();
+            //Convert.ToChar(t)
+            return rfc4122bytes.Select(t => (char)t).ToArray();
         }
     }
 

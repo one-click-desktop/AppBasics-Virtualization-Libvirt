@@ -63,23 +63,49 @@ namespace Libvirt
             _conn.MetricsTick += OnMetricsTickEvent;
         }
 
-        public void GetScreenshot(Stream stream, ImageFormat format)
+        private bool WriteOfflineScreen(Stream stream, ImageFormat format)
         {
+            using (var noSignalStream = typeof(LibvirtDomain).Assembly.GetManifestResourceStream("Libvirt.Resources.SystemOffline.png"))
+                new Bitmap(noSignalStream).Save(stream, format);
+            return true;
+        }
+
+        private bool WriteNoSignalScreen(Stream stream, ImageFormat format)
+        {
+            using (var noSignalStream = typeof(LibvirtDomain).Assembly.GetManifestResourceStream("Libvirt.Resources.NoVideoSignal.png"))
+                new Bitmap(noSignalStream).Save(stream, format);
+            return true;
+        }
+
+        private bool WriteNotSupoprtedScreen(Stream stream, ImageFormat format)
+        {
+            using (var noSignalStream = typeof(LibvirtDomain).Assembly.GetManifestResourceStream("Libvirt.Resources.NotSupported.png"))
+                new Bitmap(noSignalStream).Save(stream, format);
+            return false;
+        }
+
+        private bool WriteErrorScreen(Stream stream, ImageFormat format)
+        {
+            using (var noSignalStream = typeof(LibvirtDomain).Assembly.GetManifestResourceStream("Libvirt.Resources.InternalError.png"))
+                new Bitmap(noSignalStream).Save(stream, format);
+            return false;
+        }
+
+        public bool GetScreenshot(Stream stream, ImageFormat format)
+        {
+            if (!IsActive)
+                return WriteOfflineScreen(stream, format);
+
             var streamPtr = NativeVirStream.New(_conn.ConnectionPtr, 0);
             if (streamPtr == IntPtr.Zero)
-            {
-                Trace.WriteLine($"Could not allocate stream: {NativeVirErrors.GetLastMessage()}");
-                return;
-            }
+                return WriteErrorScreen(stream, format);
 
+            Bitmap image = null;
             try
             {
                 string mimeType = NativeVirDomain.GetScreenshot(_domainPtr, streamPtr, 0, 0);
                 if (string.IsNullOrEmpty(mimeType))
-                {
-                    Trace.WriteLine($"Screenshot request failed: {NativeVirErrors.GetLastMessage()}");
-                    return;
-                }
+                    return WriteNotSupoprtedScreen(stream, format);
 
                 using (var ms = new MemoryStream())
                 {
@@ -89,34 +115,34 @@ namespace Libvirt
                     while (rcvsize > 0)
                     {
                         rcvsize = NativeVirStream.Recv(streamPtr, buffer, 1024);
-                        ms.Write(buffer, 0, rcvsize);
+                        if (rcvsize > 0)
+                            ms.Write(buffer, 0, rcvsize);
                     }
 
                     if (rcvsize < 0)
-                    {
-                        Trace.WriteLine($"Failed to read from stream: {NativeVirErrors.GetLastMessage()}");
-                        return;
-                    }
+                        return WriteErrorScreen(stream, format);
 
                     ms.Seek(0, SeekOrigin.Begin);
 
-                    Bitmap image = null;
                     switch (mimeType)
                     {
                         case "image/x-portable-pixmap":
-                            image = GraphicsHelper.PortablePixmapToBitmap(ms);
+                            image = GraphicsHelper.PortablePixmapToBitmap(ms, Color.Black);
                             break;
                         default:
-                            Trace.WriteLine($"Unknown image format {mimeType}.");
-                            return;
+                            return WriteErrorScreen(stream, format);
                     }
-
-                    image.Save(stream, format);
-                    image.Dispose();
                 }
+
+                if (image == null)
+                    return WriteNoSignalScreen(stream, format);
+
+                image.Save(stream, format);
+                return true;
             }
             finally
             {
+                image?.Dispose();
                 try { NativeVirStream.Finish(streamPtr); } catch (Exception) { }
                 NativeVirStream.Free(streamPtr);
             }
@@ -168,7 +194,7 @@ namespace Libvirt
         /// </summary>
         public string DriverType
         {
-            get { return XmlDescription.Attributes["type"].Value; }
+            get { return XmlDescription.DocumentElement.Attributes["type"].Value; }
         }
 
         /// <summary>
@@ -230,6 +256,7 @@ namespace Libvirt
                     {
                         if (_xmlDescription == null)
                         {
+                            Trace.WriteLine($"Retrieving xml descriptor of domain {Name} (active={IsActive})");
                             var flags = VirDomainXMLFlags.VIR_DOMAIN_XML_SECURE;
                             if (!IsActive)
                                 flags |= VirDomainXMLFlags.VIR_DOMAIN_XML_INACTIVE;
@@ -317,25 +344,37 @@ namespace Libvirt
 
         #region Stats
         private VirTypedParameter[] _cpuStats = null;
+        private readonly object _statsLock = new object();
 
         private void OnMetricsTickEvent(object sender, EventArgs e)
         {
-            if (_cpuStats == null)
+            //Trace.WriteLine($"MetricsTick on domain {Name} (active={IsActive})");
+
+            if (!IsActive)
             {
-                int nparams = NativeVirDomain.GetCpuStats(_domainPtr, null, 0, -1, 1, 0);
-                _cpuStats = new VirTypedParameter[nparams];
+                _cpuUtil.Update(0, 0, 0);
+                return;
             }
 
-            if (NativeVirDomain.GetCpuStats(_domainPtr, _cpuStats, (uint)_cpuStats.Length, -1, 1, 0) < _cpuStats.Length)
-                return;
+            lock (_statsLock)
+            {
+                if (_cpuStats == null)
+                {
+                    int nparams = NativeVirDomain.GetCpuStats(_domainPtr, null, 0, -1, 1, 0);
+                    _cpuStats = new VirTypedParameter[nparams];
+                }
 
-            _cpuUtil.Update(
-                _cpuStats.Where(t => t.Name == "cpu_time" && t.Type == VirTypedParamType.VIR_TYPED_PARAM_ULLONG)
-                    .Select(t => t.Value.ULongValue).First(),
-                _cpuStats.Where(t => t.Name == "system_time" && t.Type == VirTypedParamType.VIR_TYPED_PARAM_ULLONG)
-                    .Select(t => t.Value.ULongValue).First(),
-                _cpuStats.Where(t => t.Name == "user_time" && t.Type == VirTypedParamType.VIR_TYPED_PARAM_ULLONG)
-                    .Select(t => t.Value.ULongValue).First());
+                if (NativeVirDomain.GetCpuStats(_domainPtr, _cpuStats, (uint)_cpuStats.Length, -1, 1, 0) < _cpuStats.Length)
+                    return;
+
+                _cpuUtil.Update(
+                    _cpuStats.Where(t => t.Name == "cpu_time" && t.Type == VirTypedParamType.VIR_TYPED_PARAM_ULLONG)
+                        .Select(t => t.Value.ULongValue).First(),
+                    _cpuStats.Where(t => t.Name == "system_time" && t.Type == VirTypedParamType.VIR_TYPED_PARAM_ULLONG)
+                        .Select(t => t.Value.ULongValue).First(),
+                    _cpuStats.Where(t => t.Name == "user_time" && t.Type == VirTypedParamType.VIR_TYPED_PARAM_ULLONG)
+                        .Select(t => t.Value.ULongValue).First());
+            }
         }
 
         /// <summary>
@@ -359,6 +398,15 @@ namespace Libvirt
                 case VirDomainEventType.VIR_DOMAIN_EVENT_DEFINED:
                     lock (_xmlDescrLock)
                         _xmlDescription = null; // Fore re-read of configuration
+                    if (args.EventType == VirDomainEventType.VIR_DOMAIN_EVENT_DEFINED)
+                    {
+                        lock (_statsLock)
+                        {
+                            _cpuStats = null;
+                            _cpuUtil.SetCpuCount(GetInfo().NrVirtCpu);
+                        }
+                    }
+                    
                     break;
             }
         }
@@ -444,9 +492,10 @@ namespace Libvirt
                 case "qemu":
                 case "kvm":
                     string result = null;
-                    if (NativeVirQemu.MonitorCommand(_domainPtr, $"change vnc password {password}", out result, 
+                    if (NativeVirQemu.MonitorCommand(_domainPtr, $"change vnc password \"{password}\"", ref result, 
                         VirDomainQemuMonitorCommandFlags.VIR_DOMAIN_QEMU_MONITOR_COMMAND_HMP) < 0)
                         throw new LibvirtException($"SetConsolePassword failed: {result}");
+                    Trace.WriteLine($"set console output: '{result}'");
                     break;
                 default:
                     throw new LibvirtNotImplementedException();

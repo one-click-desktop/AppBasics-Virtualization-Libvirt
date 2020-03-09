@@ -6,6 +6,9 @@
  * See COPYING.LIB for the License of this software
  */
 
+using System;
+using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace Libvirt
@@ -15,6 +18,7 @@ namespace Libvirt
     /// </summary>
     public class NativeVirLibrary
     {
+        
         /// <summary>
         /// Provides two information back, @libVer is the version of the library while @typeVer will be the version of the hypervisor
         /// type @type against which the library was compiled. If @type is NULL, "Xen" is assumed,
@@ -43,6 +47,6 @@ namespace Libvirt
         /// 0 in case of success, -1 in case of error.
         /// </returns>
         [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virInitialize")]
-        public static extern int Initialize();
+        internal static extern int InitializeLib();
     }
 }
