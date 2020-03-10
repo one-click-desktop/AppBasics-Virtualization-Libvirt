@@ -194,8 +194,8 @@ namespace Libvirt
         /// <returns>
         /// 0 on success, or -1 on error
         /// </returns>
-        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virStoragePoolGetUUID")]
-        public static extern int GetUUID(IntPtr pool, [Out] char[] uuid);
+        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virStoragePoolGetUUID", CharSet = CharSet.Ansi)]
+        public static extern int GetUUID(IntPtr pool, [Out] byte[] uuid);
 
         /// <summary>
         /// Fetch the globally unique ID of the storage pool as a string.
@@ -363,8 +363,8 @@ namespace Libvirt
         /// <returns>
         /// A virStoragePoolPtr object, or NULL if no matching pool is found
         /// </returns>
-        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virStoragePoolLookupByUUID")]
-        public static extern IntPtr LookupByUUID(IntPtr conn, char[] uuid);
+        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virStoragePoolLookupByUUID", CharSet = CharSet.Ansi)]
+        public static extern IntPtr LookupByUUID(IntPtr conn, byte[] uuid);
 
         /// <summary>
         /// Fetch a storage pool based on its globally unique id.

@@ -140,7 +140,7 @@ namespace Libvirt
             {
                 try
                 {
-                    var domUUID = new char[16];
+                    var domUUID = new byte[16];
                     if (NativeVirDomain.GetUUID(domainPtr, domUUID) < 0)
                         throw new LibvirtQueryException();
 
@@ -167,7 +167,7 @@ namespace Libvirt
                 {
                     try
                     {
-                        var domUUID = new char[16];
+                        var domUUID = new byte[16];
                         if (NativeVirDomain.GetUUID(domainPtr, domUUID) < 0)
                             throw new LibvirtQueryException();
 
@@ -239,7 +239,7 @@ namespace Libvirt
 
             try
             {
-                var domUUID = new char[16];
+                var domUUID = new byte[16];
                 if (NativeVirDomain.GetUUID(domainPtr, domUUID) < 0)
                     throw new LibvirtQueryException();
 
@@ -271,7 +271,7 @@ namespace Libvirt
 
             try
             {
-                var domUUID = new char[16];
+                var domUUID = new byte[16];
                 if (NativeVirDomain.GetUUID(domainPtr, domUUID) < 0)
                     throw new LibvirtQueryException();
 
@@ -354,7 +354,7 @@ namespace Libvirt
             {
                 try
                 {
-                    var poolUUID = new char[16];
+                    var poolUUID = new byte[16];
                     if (NativeVirStoragePool.GetUUID(poolPtr, poolUUID) < 0)
                         throw new LibvirtQueryException();
 
@@ -381,7 +381,7 @@ namespace Libvirt
                 {
                     try
                     {
-                        var poolUUID = new char[16];
+                        var poolUUID = new byte[16];
                         if (NativeVirStoragePool.GetUUID(poolPtr, poolUUID) < 0)
                             throw new LibvirtQueryException();
 
@@ -452,7 +452,7 @@ namespace Libvirt
             }
             try
             {
-                var poolUUID = new char[16];
+                var poolUUID = new byte[16];
                 if (NativeVirStoragePool.GetUUID(poolPtr, poolUUID) < 0)
                     throw new LibvirtQueryException();
 
@@ -590,7 +590,7 @@ namespace Libvirt
 
                 try
                 {
-                    var poolUUID = new char[16];
+                    var poolUUID = new byte[16];
                     if (NativeVirStoragePool.GetUUID(poolPtr, poolUUID) < 0)
                         throw new LibvirtQueryException();
 

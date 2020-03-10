@@ -39,29 +39,34 @@ namespace Libvirt
         private int _storagePoolLifecycleEventHandlerRegistrationId = -1;
         private int _storagePoolRefreshEventHandlerRegistrationId = -1;
 
+        private readonly VirConnectDomainEventCallback _domainEventCallback;
+        private readonly VirConnectStoragePoolEventLifecycleCallback _storagePoolLifecycleCallback;
+        private readonly VirConnectStoragePoolGenericEventCallback _storagePoolRefreshCallback;
+
         internal LibvirtEventLoop(LibvirtConnection connection)
         {
             _connection = connection ?? throw new ArgumentNullException("connection");
 
             _connection.ShutdownToken.Register(ShutdownEventLoop);
 
-            //if ((_domainEventHandlerRegistrationId = NativeVirConnect.DomainEventRegister(
-            //    _connection.ConnectionPtr, DomainEventCallback, IntPtr.Zero, FreeCallbackFunc)) < 0)
-            //    throw new LibvirtException();
+            _domainEventCallback = new VirConnectDomainEventCallback(DomainEventCallback);
+            _storagePoolLifecycleCallback = new VirConnectStoragePoolEventLifecycleCallback(StoragePoolLifecycleEventCallback);
+            _storagePoolRefreshCallback = new VirConnectStoragePoolGenericEventCallback(StoragePoolRefreshEventCallback);
+
             if ((_domainEventHandlerRegistrationId = NativeVirConnect.DomainEventRegisterAny(
                 _connection.ConnectionPtr, IntPtr.Zero, VirDomainEventID.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
-                DomainEventCallback, IntPtr.Zero, FreeCallbackFunc)) < 0)
+                _domainEventCallback, IntPtr.Zero, FreeCallbackFunc)) < 0)
                 throw new LibvirtException();
 
             if ((_storagePoolLifecycleEventHandlerRegistrationId = NativeVirConnect.StoragePoolEventRegisterAny(
                 _connection.ConnectionPtr, IntPtr.Zero, VirStoragePoolEventID.VIR_STORAGE_POOL_EVENT_ID_LIFECYCLE,
-                StoragePoolLifecycleEventCallback, IntPtr.Zero, FreeCallbackFunc)) < 0)
+                _storagePoolLifecycleCallback, IntPtr.Zero, FreeCallbackFunc)) < 0)
                 throw new LibvirtException();
 
             if ((_storagePoolRefreshEventHandlerRegistrationId = NativeVirConnect.StoragePoolEventRegisterAny(
                 _connection.ConnectionPtr, IntPtr.Zero,
                (int)VirStoragePoolEventID.VIR_STORAGE_POOL_EVENT_ID_REFRESH,
-               StoragePoolRefreshEventCallback, IntPtr.Zero, FreeCallbackFunc)) < 0)
+               _storagePoolRefreshCallback, IntPtr.Zero, FreeCallbackFunc)) < 0)
                 throw new LibvirtException();
 
             _lvEventLoopTask = Task.Factory.StartNew(EventLoopTask, TaskCreationOptions.DenyChildAttach | TaskCreationOptions.LongRunning);
@@ -111,7 +116,7 @@ namespace Libvirt
         {
             Trace.WriteLine($"Received domain event of type {evt.ToString()}.");
 
-            var domUUID = new char[16];
+            var domUUID = new byte[16];
             Guid domGuid = Guid.Empty;
             if (NativeVirDomain.GetUUID(dom, domUUID) < 0 || Guid.Empty.Equals(domGuid = domUUID.ToGuid()))
             {
@@ -125,7 +130,7 @@ namespace Libvirt
         {
             Trace.WriteLine($"Received storage pool event of type {evt.ToString()}.");
 
-            var poolUUID = new char[16];
+            var poolUUID = new byte[16];
             Guid poolGuid = Guid.Empty;
             if (NativeVirStoragePool.GetUUID(pool, poolUUID) < 0 || Guid.Empty.Equals(poolGuid = poolUUID.ToGuid()))
             {
@@ -139,7 +144,7 @@ namespace Libvirt
         {
             Trace.WriteLine($"Received storage pool refresh event ptr={pool}.");
 
-            var poolUUID = new char[16];
+            var poolUUID = new byte[16];
             Guid poolGuid = Guid.Empty;
             if (NativeVirStoragePool.GetUUID(pool, poolUUID) < 0 || Guid.Empty.Equals(poolGuid = poolUUID.ToGuid()))
             {

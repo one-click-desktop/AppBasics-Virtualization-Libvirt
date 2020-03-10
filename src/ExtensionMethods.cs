@@ -31,12 +31,12 @@ namespace Libvirt
 {
     static public class ExtensionMethods
     {
-        static public Guid ToGuid(this char[] uuid)
+        static public Guid ToGuid(this byte[] uuid)
         {
             if (uuid == null || uuid.Length != 16)
                 throw new ArgumentException("uuid");
-            //Convert.ToByte(t)
-            var rfc4122bytes = uuid.Select(t => (byte)t).ToArray();
+
+            var rfc4122bytes = uuid.ToArray();
 
             Array.Reverse(rfc4122bytes, 0, 4);
             Array.Reverse(rfc4122bytes, 4, 2);
@@ -45,15 +45,15 @@ namespace Libvirt
             return new Guid(rfc4122bytes);
         }
 
-        static public char[] ToUUID(this Guid guid)
+        static public byte[] ToUUID(this Guid guid)
         {
             var rfc4122bytes = guid.ToByteArray();
 
             Array.Reverse(rfc4122bytes, 0, 4);
             Array.Reverse(rfc4122bytes, 4, 2);
             Array.Reverse(rfc4122bytes, 6, 2);
-            //Convert.ToChar(t)
-            return rfc4122bytes.Select(t => (char)t).ToArray();
+
+            return rfc4122bytes.ToArray();
         }
     }
 

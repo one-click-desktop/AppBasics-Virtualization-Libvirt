@@ -52,6 +52,14 @@ namespace Libvirt
                     else
                         mappedName = "libvirt-0.dll";
                     break;
+                case "libvirt-qemu-0.dll":
+                    if (IsLinux())
+                        mappedName = "libvirt-qemu.so.0";
+                    else if (IsMacOS())
+                        mappedName = "libvirt-qemu-0.dylib";
+                    else
+                        mappedName = "libvirt-qemu-0.dll";
+                    break;
                 case "msvcrt.dll":
                      if (IsLinux())
                         mappedName = "libvirt.so.0";

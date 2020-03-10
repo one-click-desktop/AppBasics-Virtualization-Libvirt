@@ -57,16 +57,16 @@ namespace ConsoleTest
                 //connection.StoragePoolLifecycleEventReceived += Connection_StoragePoolLifecycleEventReceived;
                 //connection.StoragePoolRefreshEventReceived += Connection_StoragePoolRefreshEventReceived;
 
-                //Console.WriteLine();
-                //Console.WriteLine("[DOMAINS]");
-                //foreach (var domain in connection.Domains)
-                //{
-                //    Console.WriteLine($"{domain.UniqueId} {domain.Name} {domain.State} {domain.MachineType} {domain.GetGraphicsUri()}");
+                Console.WriteLine();
+                Console.WriteLine("[DOMAINS]");
+                foreach (var domain in connection.Domains)
+                {
+                    Console.WriteLine($"{domain.UniqueId} {domain.Name} {domain.State} {domain.MachineType} {domain.GetGraphicsUri()}");
 
-                //    //foreach (var disk in domain.DiskDevices)
-                //    //    Console.WriteLine(connection.GetVolumeByDiskSource(disk.Source));
-                //    //Console.WriteLine(domain.GetGraphicsUri());
-                //}
+                    //foreach (var disk in domain.DiskDevices)
+                    //    Console.WriteLine(connection.GetVolumeByDiskSource(disk.Source));
+                    //Console.WriteLine(domain.GetGraphicsUri());
+                }
 
                 ////Console.WriteLine();
                 ////Console.WriteLine("[STORAGE VOLUMES]");

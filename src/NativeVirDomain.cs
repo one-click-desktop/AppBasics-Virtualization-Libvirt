@@ -304,26 +304,8 @@ namespace Libvirt
         /// <returns>
         /// A <see cref="System.Int32"/>-1 in case of error, 0 in case of success.
         /// </returns>
-        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virDomainGetUUID")]
-        public static extern int GetUUID(IntPtr domain, [Out] char[] uuid);
-
-        /// <summary>
-        /// Returns the UUID as Guid if domain was found
-        /// </summary>
-        /// <param name="domain"></param>
-        /// <param name="guid"></param>
-        /// <returns></returns>
-        public static bool TryGetUUID(IntPtr domain, out Guid guid)
-        {
-            guid = Guid.Empty;
-            var domUUID = new char[16];
-
-            if (GetUUID(domain, domUUID) < 0)
-                return false;
-
-            guid = new Guid(domUUID.Select(t => Convert.ToByte(t)).ToArray());
-            return true;
-        }
+        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virDomainGetUUID", CharSet = CharSet.Ansi)]
+        public static extern int GetUUID(IntPtr domain, [Out] byte[] uuid);
 
         /// <summary>
         /// Get the UUID for a domain as string. For more information about UUID see RFC4122.
@@ -489,8 +471,8 @@ namespace Libvirt
         /// <returns>
         /// A new domain object or NULL in case of failure. If the domain cannot be found, then VIR_ERR_NO_DOMAIN error is raised.
         /// </returns>
-        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virDomainLookupByUUID")]
-        public static extern IntPtr LookupByUUID(IntPtr conn, char[] uuid);
+        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virDomainLookupByUUID", CharSet = CharSet.Ansi)]
+        public static extern IntPtr LookupByUUID(IntPtr conn, byte[] uuid);
 
         /// <summary>
         /// Try to lookup a domain on the given hypervisor based on its UUID.
