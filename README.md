@@ -101,6 +101,7 @@ You need a screenshot of a domains console? Here you go:
 # Version History
 
 1.0.1.4 Added donet core 3.1 support 
+1.0.1.5 Latest nuget package
 
 # License
 
