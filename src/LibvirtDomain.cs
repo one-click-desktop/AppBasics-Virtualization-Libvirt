@@ -63,6 +63,7 @@ namespace Libvirt
             _conn.MetricsTick += OnMetricsTickEvent;
         }
 
+        #region Console
         private bool WriteOfflineScreen(Stream stream, ImageFormat format)
         {
             using (var noSignalStream = typeof(LibvirtDomain).Assembly.GetManifestResourceStream("Libvirt.Resources.SystemOffline.png"))
@@ -147,6 +148,25 @@ namespace Libvirt
                 NativeVirStream.Free(streamPtr);
             }
         }
+
+        public void SetConsolePassword(string password)
+        {
+            switch (DriverType)
+            {
+                case "qemu":
+                case "kvm":
+                    string result = null;
+                    if (NativeVirQemu.MonitorCommand(_domainPtr, $"change vnc password \"{password}\"", ref result,
+                        VirDomainQemuMonitorCommandFlags.VIR_DOMAIN_QEMU_MONITOR_COMMAND_HMP) < 0)
+                        throw new LibvirtException($"SetConsolePassword failed: {result}");
+                    Trace.WriteLine($"set console output: '{result}'");
+                    break;
+                default:
+                    throw new LibvirtNotImplementedException();
+            }
+        }
+
+        #endregion
 
         #region Properties
         /// <summary>
@@ -333,12 +353,23 @@ namespace Libvirt
 
         public string MachineType
         {
-            get { return XmlDescription.SelectSingleNode("//domain/os/type").Attributes["machine"].Value; }
+            get { return XmlDescription.SelectSingleNode("//domain/os/type")?.Attributes["machine"].Value; }
         }
 
         public string MachineArch
         {
-            get { return XmlDescription.SelectSingleNode("//domain/os/type").Attributes["arch"].Value; }
+            get { return XmlDescription.SelectSingleNode("//domain/os/type")?.Attributes["arch"].Value; }
+        }
+
+        public string OsInfoId
+        {
+            get 
+            {
+                var xmldoc = XmlDescription;
+                XmlNamespaceManager ns = new XmlNamespaceManager(xmldoc.NameTable);
+                ns.AddNamespace("libosinfo", VirXmlNamespace.LIBOSINFO);
+                return xmldoc.SelectSingleNode("//domain/metadata/libosinfo:libosinfo/libosinfo:os", ns)?.Attributes["id"].Value; 
+            }
         }
         #endregion
 
@@ -485,22 +516,6 @@ namespace Libvirt
             return NativeVirDomain.ManagedSave(_domainPtr, VirDomainSaveRestoreFlags.Empty) == 0;
         }
 
-        public void SetConsolePassword(string password)
-        {
-            switch(DriverType)
-            {
-                case "qemu":
-                case "kvm":
-                    string result = null;
-                    if (NativeVirQemu.MonitorCommand(_domainPtr, $"change vnc password \"{password}\"", ref result, 
-                        VirDomainQemuMonitorCommandFlags.VIR_DOMAIN_QEMU_MONITOR_COMMAND_HMP) < 0)
-                        throw new LibvirtException($"SetConsolePassword failed: {result}");
-                    Trace.WriteLine($"set console output: '{result}'");
-                    break;
-                default:
-                    throw new LibvirtNotImplementedException();
-            }
-        }
         #endregion
 
         #region IDisposable implementation

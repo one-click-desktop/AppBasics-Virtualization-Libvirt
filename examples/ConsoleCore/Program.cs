@@ -19,7 +19,7 @@ namespace ConsoleCore
 
                 foreach (var domain in connection.Domains)
                 {
-                    Console.WriteLine($"{domain.UniqueId} {domain.Name} {domain.State} {domain.MachineType} {domain.GetGraphicsUri()}");
+                    Console.WriteLine($"{domain.UniqueId} {domain.Name} {domain.State} {domain.OsInfoId} {domain.GetGraphicsUri()}");
                 }
 
                 Console.WriteLine();
