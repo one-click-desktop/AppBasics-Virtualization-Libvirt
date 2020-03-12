@@ -23,25 +23,15 @@
  * limitations under the License.
  */
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Xml.Serialization;
 
 namespace Libvirt
 {
     [Serializable]
-    [XmlRoot(ElementName = "source", Namespace = "")]
-    public class VirXmlDomainInterfaceSource
+    [XmlRoot(ElementName = "alias", Namespace = "")]
+    public class VirXmlDomainInterfaceAlias
     {
-        [XmlAttribute(AttributeName = "network")]
-        public string Network { get; set; }
-
-        [XmlAttribute(AttributeName = "bridge")]
-        public string Bridge { get; set; }
-
-        public override string ToString()
-        {
-            return $"{Network??Bridge}";
-        }
+        [XmlAttribute(AttributeName = "name")]
+        public string Name { get; set; }
     }
 }

@@ -33,7 +33,7 @@ namespace Libvirt
     [XmlRoot(ElementName = "model", Namespace = "")]
     public class VirXmlDomainInterfaceModel
     {
-        [XmlAttribute(AttributeName = "virtio")]
+        [XmlAttribute(AttributeName = "type")]
         public string Type { get; set; }
 
         public override string ToString()

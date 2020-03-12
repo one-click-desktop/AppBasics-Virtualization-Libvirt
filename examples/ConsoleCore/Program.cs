@@ -15,16 +15,20 @@ namespace ConsoleCore
         {
             using (var connection = LibvirtConnection.Open())
             {
-                connection.DomainEventReceived += Connection_DomainEventReceived;
+                //connection.DomainEventReceived += Connection_DomainEventReceived;
 
                 foreach (var domain in connection.Domains)
                 {
-                    Console.WriteLine($"{domain.UniqueId} {domain.Name} {domain.State} {domain.OsInfoId} {domain.GetGraphicsUri()}");
+                    Console.WriteLine($"{domain.UniqueId} {domain.Name} {domain.State}");
+                    foreach (var nic in domain.NetworkInterfaces)
+                        Console.WriteLine($"   NIC {nic.Address.ToString()} bridge={nic.Source.Network}, mac={nic.MAC.Address}");
+
+                    break;
                 }
 
-                Console.WriteLine();
-                Console.WriteLine("[ENTER] to exit");
-                Console.ReadLine();
+                //Console.WriteLine();
+                //Console.WriteLine("[ENTER] to exit");
+                //Console.ReadLine();
             }
         }
     }

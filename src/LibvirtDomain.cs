@@ -341,8 +341,8 @@ namespace Libvirt
         {
             get
             {
-                XmlNodeList devNodeList = XmlDescription.SelectNodes("//domain/devices/interface[@type='network']");
-                XmlSerializer serializer = new XmlSerializer(typeof(VirXmlDomainNetInterface), defaultNamespace: "");
+                XmlNodeList devNodeList = XmlDescription.SelectNodes("//domain/devices/interface[@type='network' or @type='bridge']");
+                XmlSerializer serializer = new XmlSerializer(typeof(VirXmlDomainNetInterface), defaultNamespace:"");
                 foreach (XmlNode devNode in devNodeList)
                 {
                     using (var reader = new XmlNodeReader(devNode))

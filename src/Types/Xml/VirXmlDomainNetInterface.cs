@@ -46,6 +46,9 @@ namespace Libvirt
         [XmlElement("address")]
         public VirXmlDeviceAddress Address { get; set; }
 
+        [XmlElement("alias")]
+        VirXmlDomainInterfaceAlias Alias { get; set; }
+
         public override string ToString()
         {
             return $"{Type} {Source} {MAC} ({Address})";

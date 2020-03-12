@@ -61,7 +61,10 @@ namespace ConsoleTest
                 Console.WriteLine("[DOMAINS]");
                 foreach (var domain in connection.Domains)
                 {
-                    Console.WriteLine($"{domain.UniqueId} {domain.Name} {domain.State} {domain.MachineType} {domain.GetGraphicsUri()}");
+                    Console.WriteLine($"{domain.UniqueId} {domain.Name} {domain.State} {domain.MachineType}");
+
+                    foreach (var nic in domain.NetworkInterfaces)
+                        Console.WriteLine($"   NIC {nic.Address.ToString()} bridge={nic.Source.Network}, mac={nic.MAC.Address}");
 
                     //foreach (var disk in domain.DiskDevices)
                     //    Console.WriteLine(connection.GetVolumeByDiskSource(disk.Source));

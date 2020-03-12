@@ -34,5 +34,7 @@ namespace Libvirt
     {
         [XmlEnum("network")]
         Network,
+        [XmlEnum("bridge")]
+        Bridge,
     }
 }
