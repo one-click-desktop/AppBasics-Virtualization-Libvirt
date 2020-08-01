@@ -36,5 +36,7 @@ namespace Libvirt
         VIRTIO,
         [XmlEnum("sata")]
         SATA,
+        [XmlEnum("ide")]
+        IDE,
     }
 }
