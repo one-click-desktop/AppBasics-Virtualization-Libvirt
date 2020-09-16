@@ -7,13 +7,13 @@ Arnaud Champion and Jaromír Červenka have done a wonderful job in providing
 libvirt bindings for .NET, but we thought it would be useful to have a little 
 more .NETish interface for working with libvirt. In the meantime, libvirt-dotnet 
 has also received numerous additional features, such as the creation of screenshots 
-or the output of the CPU usage as a percentage value. 
+or the output of the CPU usage. 
 
 The code runs fine on mono and dotnet core (tested with mono 6.8 and dotnet-sdk 3.1 on RHEL 8). All operations are thread-safe.
 
 # Nuget package
 
-A NuGet package is now also available at https://www.nuget.org/packages/libvirt-dotnet
+NuGet packages are available at https://www.nuget.org/packages/libvirt-dotnet
 
 ```PS
 Install-Package libvirt-dotnet
@@ -23,7 +23,8 @@ The package is available for NETCoreApp 3.1, NETFramework 4.7, NETStandard 2.0. 
  
 # Documentation
  
-The following code should give you a head start: 
+The following code examples below should give you a head start. 
+See examples/ConsoleCore for more. For configuration options see the fluet interface of LibvirtConnection.Create.
 
 ## Example 1
 
@@ -39,7 +40,7 @@ private static void Connection_DomainEventReceived(object sender, VirDomainEvent
 
 static void Main(string[] args)
 {
-    using (var connection = LibvirtConnection.Open())
+    using (var connection = LibvirtConnection.Connect())
     {
 		Console.WriteLine();
 		Console.WriteLine("[DOMAINS]");
@@ -73,7 +74,7 @@ static void Main(string[] args)
 Getting the domains CPU utilization in percent is as easy as:
 
 ```c#
-    using (var connection = LibvirtConnection.Open())
+    using (var connection = LibvirtConnection.Create.WithLocalAuth().Connect())
     {
 		var d = domain in connection.Domains.Where(t => t.Name == 'MyVM').First();
 		
@@ -90,7 +91,7 @@ Getting the domains CPU utilization in percent is as easy as:
 You need a screenshot of a domains console? Here you go:
 
 ```c#
-    using (var connection = LibvirtConnection.Open())
+    using (var connection = LibvirtConnection.Create.WithOpenAuth("user", "pass").Connect("@"qemu:///system"))
     {
 		var d = domain in connection.Domains.Where(t => t.Name == 'MyVM').First();
 		

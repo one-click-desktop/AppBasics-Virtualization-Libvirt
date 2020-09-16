@@ -22,13 +22,14 @@
  * or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using Libvirt.Types;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Libvirt
 {
-    public class LibvirtConfiguration
+    public class LibvirtConfiguration : IConfigurationBuilder
     {
         // RH8 path layout for kvm
         public const string DEFAULT_QEMU_DOMAIN_LOGPATH = "/var/log/libvirt/qemu";
@@ -41,10 +42,15 @@ namespace Libvirt
 
         public LibvirtConfiguration()
         {
+            this.MetricsEnabled = true;
+            this.EventsEnabled = true;
+            this.KeepaliveInterval = DEFAULT_LIBVIRT_KEEPALIVE_INTERVAL;
+            this.KeepaliveCount = DEFAULT_LIBVIRT_KEEPALIVE_COUNT;
             this.QemuDomainRunPath = DEFAULT_QEMU_DOMAIN_RUNPATH;
             this.QemuDomainLogPath = DEFAULT_QEMU_DOMAIN_LOGPATH;
             this.QemuDomainEtcPath = DEFAULT_QEMU_DOMAIN_ETCPATH;
         }
+       
 
         #region Configuration Properties
         /// <summary>
@@ -52,7 +58,7 @@ namespace Libvirt
         /// </summary>
         public string QemuDomainRunPath
         {
-            get; set;
+            get; private set;
         }
 
         /// <summary>
@@ -60,7 +66,7 @@ namespace Libvirt
         /// </summary>
         public string QemuDomainLogPath
         {
-            get; set;
+            get; private set;
         }
 
         /// <summary>
@@ -68,7 +74,41 @@ namespace Libvirt
         /// </summary>
         public string QemuDomainEtcPath
         {
-            get; set;
+            get; private set;
+        }
+
+        /// <summary>
+        /// True if event are enabled (default).
+        /// </summary>
+        public bool EventsEnabled
+        {
+            get; private set;
+        }
+
+        /// <summary>
+        /// True if metrics collection is enabled (default).
+        /// </summary>
+        public bool MetricsEnabled
+        {
+            get; private set;
+        }
+
+        /// <summary>
+        /// Set to 0 to disable keepalive (default: LibvirtConfiguration.DEFAULT_LIBVIRT_KEEPALIVE_INTERVAL)
+        /// </summary>
+        public int KeepaliveInterval
+        {
+            get; private set;
+        }
+
+        public uint KeepaliveCount
+        {
+            get; private set;
+        }
+
+        public LibvirtAuthentication Credentials
+        {
+            get; private set;
         }
         #endregion
 
@@ -93,5 +133,90 @@ namespace Libvirt
                 OnMetricsIntervalChanged(_metricsInterval);
             }
         }
+
+        #region IConfigurationBuilder implementation
+        IConfigurationBuilder IConfigurationBuilder.WithQemuDomainLogPath(string path)
+        {
+            QemuDomainLogPath = path ?? throw new ArgumentNullException();
+            return this;
+        }
+
+        IConfigurationBuilder IConfigurationBuilder.WithQemuDomainRunPath(string path)
+        {
+            QemuDomainRunPath = path ?? throw new ArgumentNullException();
+            return this;
+        }
+
+        IConfigurationBuilder IConfigurationBuilder.WithQemuDomainEtcPath(string path)
+        {
+            QemuDomainEtcPath = path ?? throw new ArgumentNullException();
+            return this;
+        }
+
+        IConfigurationBuilder IConfigurationBuilder.WithoutKeepalive()
+        {
+            KeepaliveInterval = 0;
+            return this;
+        }
+
+        IConfigurationBuilder IConfigurationBuilder.WithKeepalive(int interval, uint count)
+        {
+            KeepaliveInterval = interval;
+            KeepaliveCount = count;
+            return this;
+        }
+
+        IConfigurationBuilder IConfigurationBuilder.WithMetricsEnabled()
+        {
+            MetricsEnabled = true;
+            return this;
+        }
+
+        IConfigurationBuilder IConfigurationBuilder.WithMetricsDisabled()
+        {
+            MetricsEnabled = false;
+            return this;
+        }
+
+        IConfigurationBuilder IConfigurationBuilder.WithEventsEnabled()
+        {
+            EventsEnabled = true;
+            return this;
+        }
+
+        IConfigurationBuilder IConfigurationBuilder.WithEventsDisabled()
+        {
+            EventsEnabled = false;
+            return this;
+        }
+
+        IConfigurationBuilder IConfigurationBuilder.WithCredentials(LibvirtAuthentication credentials)
+        {
+            this.Credentials = credentials ?? LibvirtAuthentication.Local();
+            return this;
+        }
+
+        IConfigurationBuilder IConfigurationBuilder.WithLocalAuth()
+        {
+            this.Credentials = LibvirtAuthentication.Local();
+            return this;
+        }
+
+        IConfigurationBuilder IConfigurationBuilder.WithOpenAuth(string username, string password, VirConnectFlags flags)
+        {
+            this.Credentials = LibvirtAuthentication.WithUsernameAndPassword(username, password, flags);
+            return this;
+        }
+
+        static public readonly LibvirtConfiguration Defaults = new LibvirtConfiguration();
+
+        LibvirtConfiguration IConfigurationBuilder.Configuration => this;
+
+        LibvirtConnection IConfigurationBuilder.Connect(string uri, LibvirtAuthentication auth) 
+        { 
+            return new LibvirtConnection(((Credentials = (auth ?? Credentials)) ?? LibvirtAuthentication.Local()).Connect(uri, this), this); 
+        }
+
+        #endregion
     }
 }

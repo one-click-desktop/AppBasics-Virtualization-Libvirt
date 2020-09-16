@@ -38,5 +38,10 @@ namespace Libvirt
 
         [XmlAttribute(AttributeName = "bus")]
         public VirXmlBusType Bus { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Bus}/{Device}";
+        }
     }
 }

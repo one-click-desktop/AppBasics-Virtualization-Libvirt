@@ -25,20 +25,18 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Xml.Serialization;
 
 namespace Libvirt
 {
-    [Serializable]
-    public enum VirXmlBusType
+    /// <summary>
+    /// See https://libvirt.org/html/libvirt-libvirt-host.html#virConnectFlags
+    /// </summary>
+    public enum VirConnectFlags
     {
-        [XmlEnum("virtio")]
-        VIRTIO,
-        [XmlEnum("sata")]
-        SATA,
-        [XmlEnum("ide")]
-        IDE,
-        [XmlEnum("scsi")]
-        SCSI,
+        Empty = 0,
+
+        CONNECT_RO = 1,
+
+        CONNECT_NO_ALIASES = 2,
     }
 }

@@ -29,6 +29,7 @@ namespace Libvirt
 {
     /// <summary>
     /// Structure to handle node informations
+    /// <seealso cref="https://libvirt.org/html/libvirt-libvirt-host.html#virNodeInfo"/>
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public class VirNodeInfo
@@ -41,37 +42,37 @@ namespace Libvirt
         /// <summary>
         /// Memory size in kilobytes
         /// </summary>
-        [MarshalAs(UnmanagedType.SysUInt)]
+        [MarshalAs(UnmanagedType.U8)]
         public ulong Memory;
         /// <summary>
         /// The number of active CPUs.
         /// </summary>
-        [MarshalAs(UnmanagedType.SysUInt)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint Cpus;
         /// <summary>
-        /// Expected CPU frequency.
+        /// expected CPU frequency, 0 if not known or on unusual architectures
         /// </summary>
-        [MarshalAs(UnmanagedType.SysUInt)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint Mhz;
         /// <summary>
-        /// The number of NUMA cell, 1 for uniform mem access.
+        /// the number of NUMA cell, 1 for unusual NUMA topologies or uniform memory access; check capabilities XML for the actual NUMA topology
         /// </summary>
-        [MarshalAs(UnmanagedType.SysUInt)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint Nodes;
         /// <summary>
-        /// Number of CPU socket per node.
+        /// number of CPU sockets per node if nodes > 1, 1 in case of unusual NUMA topology
         /// </summary>
-        [MarshalAs(UnmanagedType.SysUInt)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint Sockets;
         /// <summary>
-        /// Number of core per socket.
+        /// number of cores per socket, total number of processors in case of unusual NUMA topology
         /// </summary>
-        [MarshalAs(UnmanagedType.SysUInt)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint Cores;
         /// <summary>
-        /// Number of threads per core.
+        /// number of threads per core, 1 in case of unusual numa topology
         /// </summary>
-        [MarshalAs(UnmanagedType.SysUInt)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint Threads;
     }
 }

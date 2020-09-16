@@ -38,5 +38,10 @@ namespace Libvirt
 
         [XmlAttribute(AttributeName = "type")]
         public string Type { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Name}({Type})";
+        }
     }
 }

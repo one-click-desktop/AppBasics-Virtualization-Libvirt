@@ -40,6 +40,9 @@ namespace Libvirt
         [XmlElement("source")]
         public VirXmlDomainInterfaceSource Source { get; set; }
 
+        [XmlElement("target")]
+        public VirXmlDomainInterfaceTarget Target { get; set; }
+
         [XmlElement("model")]
         public VirXmlDomainInterfaceModel Model { get; set; }
 

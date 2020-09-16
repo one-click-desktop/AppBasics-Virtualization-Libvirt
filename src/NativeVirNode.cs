@@ -72,6 +72,7 @@ namespace Libvirt
         /// </returns>
         [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virNodeGetFreeMemory")]
         public static extern ulong GetFreeMemory(IntPtr conn);
+        
         /// <summary>
         /// Extract hardware information about the node.
         /// </summary>
@@ -85,7 +86,7 @@ namespace Libvirt
         /// 0 in case of success and -1 in case of failure.
         /// </returns>
         [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virNodeGetInfo")]
-        public static extern int GetInfo(IntPtr h, [Out] VirNodeInfo info);
+        public static extern int GetInfo(IntPtr h, [Out]VirNodeInfo info);
 
         // TODO virNodeGetSecurityModel
 

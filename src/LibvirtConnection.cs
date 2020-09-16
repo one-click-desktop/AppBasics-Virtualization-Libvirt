@@ -47,28 +47,29 @@ namespace Libvirt
         /// Creates a new connections
         /// </summary>
         /// <param name="conn"></param>
-        public LibvirtConnection(IntPtr conn, LibvirtConfiguration configuration = null)
+        public LibvirtConnection(IntPtr conn, LibvirtConfiguration configuration)
         {
             if (conn == IntPtr.Zero)
                 throw new LibvirtConnectionException();
-
             ConnectionPtr = conn;
+            Configuration = configuration ?? throw new ArgumentNullException("configuration");
 
-            Configuration = configuration ?? new LibvirtConfiguration();
+            if (Configuration.EventsEnabled)
+                _lvEvents = new LibvirtEventLoop(this);
 
-            _lvEvents = new LibvirtEventLoop(this);
-
-            SetKeepAlive(LibvirtConfiguration.DEFAULT_LIBVIRT_KEEPALIVE_INTERVAL, 
-                         LibvirtConfiguration.DEFAULT_LIBVIRT_KEEPALIVE_COUNT);
+            if (Configuration.KeepaliveInterval > 0 &&
+                NativeVirConnect.SetKeepAlive(ConnectionPtr, Configuration.KeepaliveInterval, Configuration.KeepaliveCount) < 0)
+                throw new LibvirtConnectionException();
 
             Node = new LibvirtNode(this);
 
-            _metricsTicker = new Timer(MetricsTickerCallback, null,
-                Configuration.MetricsIntervalSeconds * 1000,
-                Configuration.MetricsIntervalSeconds * 1000);
+            if (Configuration.MetricsEnabled)
+                _metricsTicker = new Timer(MetricsTickerCallback, null,
+                    Configuration.MetricsIntervalSeconds * 1000,
+                    Configuration.MetricsIntervalSeconds * 1000);
 
             Configuration.OnMetricsIntervalChanged = (i) => 
-                _metricsTicker.Change(i == 0 ? Timeout.Infinite : i, i == 0 ? Timeout.Infinite : i);
+                _metricsTicker?.Change(i == 0 ? Timeout.Infinite : i, i == 0 ? Timeout.Infinite : i);
         }
 
         #region Metrics Tick
@@ -97,12 +98,6 @@ namespace Libvirt
         #region Connection
         public bool IsAlive {  get { return NativeVirConnect.IsAlive(ConnectionPtr) == 1; } }
         
-        public void SetKeepAlive(int interval, uint count)
-        {
-            if (NativeVirConnect.SetKeepAlive(ConnectionPtr, interval, count) < 0)
-                throw new LibvirtConnectionException();
-        }
-
         /// <summary>
         /// Disposes the connection.
         /// </summary>
@@ -627,19 +622,16 @@ namespace Libvirt
 
             if (NativeVirEvent.RegisterDefaultImpl() != 0)
                 throw new LibvirtException();
+
             Trace.WriteLine("Registered default event loop implementation.");
         }
 
-        /// <summary>
-        /// Opens a new connection
-        /// </summary>
-        /// <param name="conn"></param>
-        /// <returns></returns>
-        static public LibvirtConnection Open(string conn = @"qemu:///system", LibvirtConfiguration configuration = null)
+        static public IConfigurationBuilder Create => new LibvirtConfiguration();
+        
+        static public LibvirtConnection Connect(string uri = @"qemu:///system", LibvirtAuthentication auth = null)
         {
-            return new LibvirtConnection(NativeVirConnect.Open(conn), configuration);
+            return Create.Connect(uri, auth);
         }
-
         #endregion
 
         #region Internal 

@@ -6,6 +6,7 @@
  * See COPYING.LIB for the License of this software
  */
 
+using Libvirt.Types;
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -73,10 +74,11 @@ namespace Libvirt
         {
             VirDomainBlockStatsStruct statStruct = new VirDomainBlockStatsStruct();
             IntPtr statStructPtr = Marshal.AllocHGlobal(Marshal.SizeOf(statStruct));
-            Marshal.StructureToPtr(statStruct, statStructPtr, true);
+            Marshal.StructureToPtr(statStruct, statStructPtr, false);
             int result = BlockStats(dom, path, statStructPtr, Marshal.SizeOf(statStruct));
             Marshal.PtrToStructure(statStructPtr, statStruct);
             stats = statStruct;
+            Marshal.DestroyStructure(statStructPtr, typeof(VirDomainBlockStatsStruct));
             Marshal.FreeHGlobal(statStructPtr);
             return result;
         }
@@ -247,6 +249,19 @@ namespace Libvirt
         /// </returns>
         [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virDomainGetMaxMemory")]
         public static extern ulong GetMaxMemory(IntPtr domain);
+
+        /// <summary>
+        /// This function provides memory statistics for the domain.
+        /// See https://libvirt.org/html/libvirt-libvirt-domain.html#virDomainMemoryStats
+        /// </summary>
+        /// <param name="dom">pointer to the domain object</param>
+        /// <param name="stats">nr_stats-sized array of stat structures (returned)</param>
+        /// <param name="nr_stats">number of memory statistics requested</param>
+        /// <param name="flags">extra flags; not used yet, so callers should always pass 0</param>
+        /// <returns>The number of stats provided or -1 in case of failure.</returns>
+        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virDomainMemoryStats")]
+        public static extern int GetMemoryStats(IntPtr dom, [Out]VirDomainMemoryStat[] stats, uint nr_stats, uint flags);
+
         /// <summary>
         /// Provides the maximum number of virtual CPUs supported for the guest VM.
         /// If the guest is inactive, this is basically the same as virConnectGetMaxVcpus.

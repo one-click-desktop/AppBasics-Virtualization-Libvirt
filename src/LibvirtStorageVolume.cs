@@ -42,6 +42,7 @@ namespace Libvirt
         private readonly IntPtr _volumePtr;
         private XmlDocument _xmlDescription = null;
         private readonly object _xmlDescrLock = new object();
+        Lazy<VirStorageVolInfo> _volInfo;
 
         internal LibvirtStorageVolume(LibvirtConnection conn, Guid poolId, string keyString, IntPtr volumePtr)
         {
@@ -53,6 +54,7 @@ namespace Libvirt
             if (volumePtr == IntPtr.Zero)
                 throw new ArgumentNullException("volumePtr");
             _volumePtr = volumePtr;
+            Refresh();
         }
 
         #region Properties
@@ -74,44 +76,17 @@ namespace Libvirt
         /// <summary>
         /// Get storage pool state
         /// </summary>
-        public VirStorageVolType VolumeType
-        {
-            get
-            {
-                VirStorageVolInfo volInfo = new VirStorageVolInfo();
-                if (NativeVirStorageVol.GetInfo(_volumePtr, ref volInfo) < 0)
-                    throw new LibvirtQueryException();
-                return volInfo.Type;
-            }
-        }
+        public VirStorageVolType VolumeType => _volInfo.Value.Type;
 
         /// <summary>
         /// Get pool capacity
         /// </summary>
-        public ulong CapacityInByte
-        {
-            get
-            {
-                VirStorageVolInfo volInfo = new VirStorageVolInfo();
-                if (NativeVirStorageVol.GetInfo(_volumePtr, ref volInfo) < 0)
-                    throw new LibvirtQueryException();
-                return volInfo.Capacity;
-            }
-        }
+        public ulong CapacityInByte => _volInfo.Value.Capacity;
 
         /// <summary>
         /// Get allocated byte
         /// </summary>
-        public ulong ByteAllocated
-        {
-            get
-            {
-                VirStorageVolInfo volInfo = new VirStorageVolInfo();
-                if (NativeVirStorageVol.GetInfo(_volumePtr, ref volInfo) < 0)
-                    throw new LibvirtQueryException();
-                return volInfo.Allocation;
-            }
-        }
+        public ulong ByteAllocated => _volInfo.Value.Allocation;
 
         public LibvirtStoragePool StoragePool
         {
@@ -164,6 +139,24 @@ namespace Libvirt
 
         #endregion
 
+        public void Refresh()
+        {
+            if (Thread.VolatileRead(ref _isDisposing) != 0)
+                return;
+
+            lock (_xmlDescrLock)
+            {
+                _xmlDescription = null; // Fore re-read of configuration
+                _volInfo = new Lazy<VirStorageVolInfo>(() =>
+                {
+                    VirStorageVolInfo volInfo = new VirStorageVolInfo();
+                    if (NativeVirStorageVol.GetInfo(_volumePtr, ref volInfo) < 0)
+                        throw new LibvirtQueryException();
+                    return volInfo;
+                }, LazyThreadSafetyMode.ExecutionAndPublication);
+            }
+        }
+
         #region Events
         internal void DispatchStoragePoolEvent(VirStoragePoolLifecycleEventArgs args)
         {
@@ -173,11 +166,7 @@ namespace Libvirt
 
         internal void DispatchStoragePoolEvent(VirStoragePoolRefreshEventArgs args)
         {
-            if (Thread.VolatileRead(ref _isDisposing) != 0)
-                return;
-
-            lock (_xmlDescrLock)
-                _xmlDescription = null; // Fore re-read of configuration
+            Refresh();
         }
         #endregion
 

@@ -55,8 +55,40 @@ namespace Libvirt
         /// * The number of statistics supported by this version of the interface. * To add new statistics, add them to the enum and increase this value. *
         /// </summary>
         VIR_DOMAIN_MEMORY_STAT_AVAILABLE = 5,
+
+        /// <summary>
+        /// * Current balloon value (in KB).
+        /// </summary>
+        VIR_DOMAIN_MEMORY_STAT_ACTUAL_BALLOON = 6,
+        /// <summary>
+        /// * Resident Set Size of the process running the domain. This value is in kB
+        /// </summary>
+        VIR_DOMAIN_MEMORY_STAT_RSS = 7,
+        /// <summary>
+        /// * How much the balloon can be inflated without pushing the guest system to swap, corresponds to 'Available' in /proc/meminfo
+        /// </summary>
+        VIR_DOMAIN_MEMORY_STAT_USABLE = 8,
+        /// <summary>
+        /// * Timestamp of the last update of statistics, in seconds.
+        /// </summary>
+        VIR_DOMAIN_MEMORY_STAT_LAST_UPDATE = 9,
+        /// <summary>
+        /// * The amount of memory, that can be quickly reclaimed without additional I/O (in kB). Typically these pages are used for caching files from disk.
+        /// </summary>
+        VIR_DOMAIN_MEMORY_STAT_DISK_CACHES = 10,
+        /// <summary>
+        /// * The number of successful huge page allocations from inside the domain via virtio balloon.
+        /// </summary>
+        VIR_DOMAIN_MEMORY_STAT_HUGETLB_PGALLOC = 11,
+        /// <summary>
+        /// * The number of failed huge page allocations from inside the domain via virtio balloon.
+        /// </summary>
+        VIR_DOMAIN_MEMORY_STAT_HUGETLB_PGFAIL = 12,
+        /// <summary>
+        /// * The number of statistics supported by this version of the interface. To add new statistics, add them to the enum and increase this value.
+        /// </summary>
 #pragma warning disable 1591
-        VIR_DOMAIN_MEMORY_STAT_NR = 6
+        VIR_DOMAIN_MEMORY_STAT_NR = 13
 #pragma warning restore 1591
     }
 }

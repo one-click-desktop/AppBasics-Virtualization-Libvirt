@@ -32,7 +32,7 @@ namespace ConsoleTest
 
         static void Main(string[] args)
         {
-            using (var connection = LibvirtConnection.Open())
+            using (var connection = LibvirtConnection.Create.WithLocalAuth().Connect())
             {
                 connection.DomainEventReceived += Connection_DomainEventReceived;
 

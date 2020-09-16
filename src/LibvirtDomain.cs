@@ -59,8 +59,11 @@ namespace Libvirt
             if (domainPtr == IntPtr.Zero)
                 throw new ArgumentNullException("domainPtr");
             _domainPtr = domainPtr;
-            _cpuUtil = new GuestCpuUtilizationMetric(GetInfo().NrVirtCpu);
-            _conn.MetricsTick += OnMetricsTickEvent;
+            if (connection.Configuration.MetricsEnabled)
+            {
+                _cpuUtil = new GuestCpuUtilizationMetric(GetInfo().NrVirtCpu);
+                _conn.MetricsTick += OnMetricsTickEvent;
+            }
         }
 
         #region Console
@@ -193,6 +196,21 @@ namespace Libvirt
         /// The type of operating system
         /// </summary>
         public string OSType {  get { return NativeVirDomain.GetOSType(_domainPtr); } }
+
+        /// <summary>
+        /// Returns the CPU time used
+        /// </summary>
+        public TimeSpan CpuTimeUsed {  get { return TimeSpan.FromMilliseconds(GetInfo().CpuTime.ToUInt64() / 1000000); } }
+
+        /// <summary>
+        /// Memory allocated for this domain
+        /// </summary>
+        public ulong MemoryUsedKbyte {  get { return GetInfo().Memory.ToUInt64(); } }
+
+        /// <summary>
+        /// Maximum allocatebale memory for this domain
+        /// </summary>
+        public ulong MemoryMaxKbyte { get { return GetInfo().MaxMem.ToUInt64(); } }
 
         /// <summary>
         /// Get domains runnig state
@@ -409,7 +427,7 @@ namespace Libvirt
         }
 
         /// <summary>
-        /// Returns CPU utilization information
+        /// Returns CPU utilization information (relative to the resources available to the guest).
         /// </summary>
         public GuestCpuUtilizationMetric CpuUtilization => _cpuUtil;
 
@@ -530,7 +548,8 @@ namespace Libvirt
                 return;
 
             Trace.WriteLine($"Disposing domain {this.ToString()}.");
-            _conn.MetricsTick -= OnMetricsTickEvent;
+            if (_conn.Configuration.MetricsEnabled)
+                _conn.MetricsTick -= OnMetricsTickEvent;
 
             if (_domainPtr != IntPtr.Zero)
                 NativeVirDomain.Free(_domainPtr);

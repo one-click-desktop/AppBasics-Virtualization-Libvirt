@@ -29,6 +29,7 @@ namespace Libvirt
 {
     /// <summary>
     /// Structure to handle domain informations
+    /// <see cref="https://libvirt.org/html/libvirt-libvirt-domain.html#virDomainInfo"/>
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public class VirDomainInfo
@@ -50,6 +51,7 @@ namespace Libvirt
         /// <summary>
         /// The number of virtual CPUs for the domain.
         /// </summary>
+        [MarshalAs(UnmanagedType.U2)]
         public ushort NrVirtCpu;
         /// <summary>
         /// The CPU time used in nanoseconds.

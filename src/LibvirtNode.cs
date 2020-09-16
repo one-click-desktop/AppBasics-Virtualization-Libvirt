@@ -67,13 +67,15 @@ namespace Libvirt
 
         public uint CpuFrequencyMhz { get { return GetInfo().Mhz; } }
 
-        public uint CpuSocketCount { get { return GetInfo().Sockets; } }
+        public uint CpuNumaNodes { get { return GetInfo().Nodes; } }
 
-        public uint CpuCores { get { return GetInfo().Cores; } }
+        public uint CpuSocketsPerNode { get { return GetInfo().Sockets; } }
 
-        public uint CpuThreads { get { return GetInfo().Threads; } }
+        public uint CpuCoresPerSocket { get { return GetInfo().Cores; } }
 
-        public ulong MemoryBytes { get { return GetInfo().Memory; } }
+        public uint CpuThreadsPerCore { get { return GetInfo().Threads; } }
+
+        public ulong MemoryKBytes { get { return GetInfo().Memory; } }
 
         #region IDisposable implementation
         private Int32 _isDisposing = 0;

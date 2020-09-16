@@ -391,6 +391,7 @@ namespace Libvirt
         ///<returns>a pointer to the hypervisor connection or NULL in case of error URIs are documented at http://libvirt.org/uri.html </returns>
         [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "virConnectOpenAuth")]
         private static extern IntPtr OpenAuth(string name, ref VirConnectAuthUnmanaged auth, int flags);
+        
         /// <summary>
         /// This function should be called first to get a connection to the Hypervisor. If necessary, authentication will be performed fetching credentials via the callback See virConnectOpen for notes about environment variables which can have an effect on opening drivers
         /// </summary>
@@ -404,9 +405,10 @@ namespace Libvirt
             VirOpenAuthManagedCB cbAndUserData = new VirOpenAuthManagedCB();
             cbAndUserData.cbdata = auth.cbdata;
             cbAndUserData.cbManaged = auth.cb;
+            
             // Pass the structure as cbdata
             IntPtr cbAndUserDataPtr = Marshal.AllocHGlobal(Marshal.SizeOf(cbAndUserData));
-            Marshal.StructureToPtr(cbAndUserData, cbAndUserDataPtr, true);
+            Marshal.StructureToPtr(cbAndUserData, cbAndUserDataPtr, false);
 
             // Create the real ConnectAuth structure, it will call OpenAuthCallbackFromUnmanaged via callback
             VirConnectAuthUnmanaged connectAuth = new VirConnectAuthUnmanaged();
@@ -414,7 +416,10 @@ namespace Libvirt
             connectAuth.cb = OpenAuthCallbackFromUnmanaged;
             connectAuth.CredTypes = auth.CredTypes;
 
-            return OpenAuth(name, ref connectAuth, flags);
+            IntPtr ret = OpenAuth(name, ref connectAuth, flags);
+            Marshal.DestroyStructure(cbAndUserDataPtr, typeof(VirOpenAuthManagedCB));
+            Marshal.FreeHGlobal(cbAndUserDataPtr);
+            return ret;
         }
 
         private static int OpenAuthCallbackFromUnmanaged(IntPtr creds, uint ncreds, IntPtr cbdata)
@@ -450,6 +455,7 @@ namespace Libvirt
 
             return 0;
         }
+
         /// <summary>
         /// This function should be called first to get a restricted connection to the library functionalities. The set of APIs usable are then restricted on the available methods to control the domains. See virConnectOpen for notes about environment variables which can have an effect on opening drivers
         /// </summary>

@@ -30,15 +30,15 @@ using System.Xml.Serialization;
 namespace Libvirt
 {
     [Serializable]
-    public enum VirXmlBusType
+    [XmlRoot(ElementName = "target", Namespace = "")]
+    public class VirXmlDomainInterfaceTarget
     {
-        [XmlEnum("virtio")]
-        VIRTIO,
-        [XmlEnum("sata")]
-        SATA,
-        [XmlEnum("ide")]
-        IDE,
-        [XmlEnum("scsi")]
-        SCSI,
+        [XmlAttribute(AttributeName = "dev")]
+        public string Device { get; set; }
+
+        public override string ToString()
+        {
+            return $"Target Device={Device}";
+        }
     }
 }

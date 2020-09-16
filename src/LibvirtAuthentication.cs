@@ -19,29 +19,25 @@
  * or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using Libvirt.Types;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Libvirt.Types
+namespace Libvirt
 {
-    ///<summary>
-    /// Structure for domain memory statistics
-    ///</summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct VirDomainMemoryStat
+    public abstract class LibvirtAuthentication
     {
-        /// <summary>
-        /// Tag
-        /// </summary>
-        [MarshalAs(UnmanagedType.I4)]
-        public VirDomainMemoryStatTags tag;
-        /// <summary>
-        /// Value
-        /// </summary>
-        [MarshalAs(UnmanagedType.U8)]
-        public ulong val;
+        static public LibvirtAuthentication Local()
+        {
+            return new LocalAuthentication();
+        }
+
+        static public LibvirtAuthentication WithUsernameAndPassword(string username, string password, VirConnectFlags flags = VirConnectFlags.Empty)
+        {
+            return new OpenAuthPasswordAuth { Username = username, Password = password, Flags = flags };
+        }
+
+        internal abstract IntPtr Connect(string uri, LibvirtConfiguration configuration);
     }
 }
