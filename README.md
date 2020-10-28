@@ -1,13 +1,16 @@
 # About
 
-Libvirt-dotnet provides a .NETish interface to the libvirt virtualization API. 
-The original code is base on the raw bindings provided by Libvirt Bindings (https://libvirt.org/git/?p=libvirt-csharp.git).
+IDNT AppBasics are a series of basic application components created by IDNT. They
+are used within our internal PaaS and SaaS infrastructure as well as for several
+other public and private projects. Feel free to use these components within your
+own application. 
 
-Arnaud Champion and Jaromír Červenka have done a wonderful job in providing 
-libvirt bindings for .NET, but we thought it would be useful to have a little 
-more .NETish interface for working with libvirt. In the meantime, libvirt-dotnet 
-has also received numerous additional features, such as the creation of screenshots 
-or the output of the CPU usage. 
+# This component
+
+This component provides a .NETish interface to the libvirt virtualization API [https://libvirt.org].
+The library is based on the raw Libvirt Bindings [https://libvirt.org/git/?p=libvirt-csharp.git] developed
+by Arnaud Champion, Jaromír Červenka and contributors. This project extends the bindings with rich 
+functionality with a .NETish fluent interface.
 
 The code runs fine on mono and dotnet core (tested with mono 6.8 and dotnet-sdk 3.1 on RHEL 8). All operations are thread-safe.
 
@@ -23,8 +26,7 @@ The package is available for NETCoreApp 3.1, NETFramework 4.7, NETStandard 2.0. 
  
 # Documentation
  
-The following code examples below should give you a head start. 
-See examples/ConsoleCore for more. For configuration options see the fluet interface of LibvirtConnection.Create.
+See examples/ConsoleCore to see the basic usage. For configuration options see the fluet interface of LibvirtConnection.Create.
 
 ## Example 1
 

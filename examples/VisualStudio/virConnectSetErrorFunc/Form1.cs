@@ -21,7 +21,8 @@
 
 using System;
 using System.Windows.Forms;
-using Libvirt;
+using IDNT.AppBasics.Virtualization.Libvirt;
+using IDNT.AppBasics.Virtualization.Libvirt.Native;
 
 namespace virConnectSetErrorFunc
 {

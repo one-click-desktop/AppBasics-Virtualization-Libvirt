@@ -1,0 +1,79 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2;net47;net461;netcoreapp3.1</TargetFrameworks>
+    <PackageId>IDNT.AppBasics.Virtualization.Libvirt</PackageId>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Authors>IDNT and the Livirt-dotnet contributors.</Authors>
+    <Company>IDNT Europe GmbH</Company>
+    <Product>IDNT AppBasics</Product>
+    <Description>.NET interface to libvirt, the toolkit to manage virtualization platforms like KVM, QEMU, Xen, Virtuozzo, VMWare ESX, LXC and more.</Description>
+    <Copyright>2020 Copyright IDNT Europe GmbH and the Livirt-dotnet contributors.</Copyright>
+    <PackageLicenseUrl></PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/IDNT/AppBasics-Virtualization-Libvirt</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/IDNT/AppBasics-Virtualization-Libvirt</RepositoryUrl>
+    <PackageTags>libvirt; libvirt-dotnet; kvm; qemu</PackageTags>
+    <PackageReleaseNotes></PackageReleaseNotes>
+    <AssemblyName>IDNT.AppBasics.Virtualization.Libvirt</AssemblyName>
+    <RootNamespace>IDNT.AppBasics</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyVersion>1.0.9.0</AssemblyVersion>
+    <FileVersion>1.0.9.0</FileVersion>
+    <Version>1.0.9</Version>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageIcon>project.png</PackageIcon>
+    <PackageIconUrl />
+    <ApplicationIcon>project.ico</ApplicationIcon>
+    <Win32Resource />
+    <Platforms>AnyCPU;x64</Platforms>
+    <RepositoryType>nuget</RepositoryType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2|AnyCPU'">
+    <PlatformTarget>x64</PlatformTarget>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2|x64'">
+    <PlatformTarget>x64</PlatformTarget>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1'">
+    <DefineConstants>NETCORE;NETCORE3;NETCORE31</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2|AnyCPU'">
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2|x64'">
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Virtualization\Libvirt\Resources\InternalError.png" />
+    <None Remove="Virtualization\Libvirt\Resources\NotSupported.png" />
+    <None Remove="Virtualization\Libvirt\Resources\NoVideoSignal.png" />
+    <None Remove="Virtualization\Libvirt\Resources\SystemOffline.png" />
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+    <None Include="..\project.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Virtualization\Libvirt\Resources\InternalError.png" />
+    <EmbeddedResource Include="Virtualization\Libvirt\Resources\NotSupported.png" />
+    <EmbeddedResource Include="Virtualization\Libvirt\Resources\NoVideoSignal.png" />
+    <EmbeddedResource Include="Virtualization\Libvirt\Resources\SystemOffline.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.6">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="IDNT.AppBasics.Virtualization.Libvirt.dll.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

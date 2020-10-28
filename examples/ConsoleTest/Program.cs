@@ -1,4 +1,5 @@
-﻿using Libvirt;
+﻿using IDNT.AppBasics.Virtualization.Libvirt;
+using IDNT.AppBasics.Virtualization.Libvirt.Events;
 using System;
 using System.Collections.Generic;
 using System.IO;

@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\libvirt-dotnet.csproj" />
+    <ProjectReference Include="..\..\src\IDNT.AppBasics.Virtualization.Libvirt.csproj" />
   </ItemGroup>
 
 </Project>

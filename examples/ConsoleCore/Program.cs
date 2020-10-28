@@ -1,4 +1,5 @@
-﻿using Libvirt;
+﻿using IDNT.AppBasics.Virtualization.Libvirt;
+using IDNT.AppBasics.Virtualization.Libvirt.Events;
 using System;
 
 namespace ConsoleCore
@@ -31,7 +32,7 @@ namespace ConsoleCore
                 Console.WriteLine(Environment.NewLine + "[Pools]");
                 foreach (var pool in connection.StoragePools)
                 {
-                    Console.WriteLine($"   {pool.Name} (state={pool.State} driver={pool.DriverType}) {pool.CapacityInByte / 1024 / 1024 / 1024} GB ({pool.ByteAvailable/1024/1024/1024} GB free)");
+                    Console.WriteLine($"   {pool.Name} (state={pool.State} driver={pool.DriverType} path={pool.GetPath()}) {pool.CapacityInByte / 1024 / 1024 / 1024} GB ({pool.ByteAvailable/1024/1024/1024} GB free)");
                     foreach (var volume in pool.Volumes)
                         Console.WriteLine($"      Volume {volume.Name} (type={volume.VolumeType}, path={volume.Path}) {volume.CapacityInByte / 1024 / 1024 / 1024} GB ({volume.ByteAllocated/1024/1024/1024} GB allocated)");
                 }

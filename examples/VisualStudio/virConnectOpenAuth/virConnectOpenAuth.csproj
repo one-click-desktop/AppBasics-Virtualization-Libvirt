@@ -82,7 +82,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\libvirt-dotnet.csproj">
+    <ProjectReference Include="..\..\..\src\IDNT.AppBasics.Virtualization.Libvirt.csproj">
       <Project>{592fe0db-c205-4934-bd20-79bdab1584c1}</Project>
       <Name>libvirt-dotnet</Name>
     </ProjectReference>

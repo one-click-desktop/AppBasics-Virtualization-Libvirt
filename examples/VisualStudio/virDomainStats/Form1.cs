@@ -32,7 +32,9 @@ using System;
 using System.Linq;
 using System.Windows.Forms;
 using System.Xml;
-using Libvirt;
+using IDNT.AppBasics.Virtualization.Libvirt;
+using IDNT.AppBasics.Virtualization.Libvirt.Metrics;
+using IDNT.AppBasics.Virtualization.Libvirt.Native;
 
 namespace virDomainStats
 {
