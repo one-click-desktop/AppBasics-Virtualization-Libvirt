@@ -16,10 +16,10 @@ The code runs fine on mono and dotnet core (tested with mono 6.8 and dotnet-sdk 
 
 # Nuget package
 
-NuGet packages are available at https://www.nuget.org/packages/libvirt-dotnet
+NuGet packages are available at https://www.nuget.org/packages/IDNT.AppBasics.Virtualization.Libvirt
 
 ```PS
-Install-Package libvirt-dotnet
+Install-Package IDNT.AppBasics.Virtualization.Libvirt
 ```
 
 The package is available for NETCoreApp 3.1, NETFramework 4.7, NETStandard 2.0. The dependcy on System.Drawing.Common is required for converting console screenshots to the specified destination format.
