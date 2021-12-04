@@ -443,7 +443,7 @@ namespace IDNT.AppBasics.Virtualization.Libvirt
                 case VirDomainEventType.VIR_DOMAIN_EVENT_DEFINED:
                     lock (_xmlDescrLock)
                         _xmlDescription = null; // Fore re-read of configuration
-                    if (args.EventType == VirDomainEventType.VIR_DOMAIN_EVENT_DEFINED)
+                    if (args.EventType == VirDomainEventType.VIR_DOMAIN_EVENT_DEFINED && _conn.Configuration.MetricsEnabled)
                     {
                         lock (_statsLock)
                         {
