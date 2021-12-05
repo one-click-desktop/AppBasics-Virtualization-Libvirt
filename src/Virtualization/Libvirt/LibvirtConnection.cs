@@ -286,22 +286,23 @@ namespace IDNT.AppBasics.Virtualization.Libvirt
             }
         }
 
-        public void DestroyDomain(LibvirtDomain domain)
-        {
-            if (domain == null)
-                throw new ArgumentException("Domain cannot be null");
-            IntPtr domainPtr = domain.DomainPtr;
-            
-            if (NativeVirDomain.Destroy(domainPtr) == -1)
-                throw new LibvirtException();
-        }
-
         public void CreateDomain(XDocument definition)
         {
             if (definition == null)
                 throw new ArgumentException("Definition cannot be null");
             
             IntPtr domainPtr = NativeVirDomain.CreateXML(this.ConnectionPtr, definition.ToString(), 0);
+            
+            if (IntPtr.Zero == domainPtr)
+                throw new LibvirtException();
+        }
+
+        public void DefineDomain(XDocument definition)
+        {
+            if (definition == null)
+                throw new ArgumentException("Definition cannot be null");
+            
+            IntPtr domainPtr = NativeVirDomain.DefineXML(this.ConnectionPtr, definition.ToString());
             
             if (IntPtr.Zero == domainPtr)
                 throw new LibvirtException();

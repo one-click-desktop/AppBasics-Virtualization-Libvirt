@@ -521,6 +521,25 @@ namespace IDNT.AppBasics.Virtualization.Libvirt
             return NativeVirDomain.Shutdown(_domainPtr) == 0;
         }
 
+        public bool Destroy()
+        {
+            return NativeVirDomain.Destroy(this._domainPtr) == 0;
+        }
+        
+        public bool Undefine()
+        {
+            int ret = NativeVirDomain.IsPersistent(this.DomainPtr);
+            switch (ret)
+            {
+                case 1:
+                    return NativeVirDomain.Undefine(this.DomainPtr) == 0;
+                case 0:
+                    throw new LibvirtException("Cannot undefine transient domain");
+                default: //-1 and others
+                    throw new LibvirtException();
+            }
+        }
+
         /// <summary>
         /// Shutdown a domain, the domain object is still usable thereafter, but the domain OS is being stopped. Note that the guest OS may ignore the request.
         /// </summary>
