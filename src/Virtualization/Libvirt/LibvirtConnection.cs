@@ -34,6 +34,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace IDNT.AppBasics.Virtualization.Libvirt
 {
@@ -295,12 +296,12 @@ namespace IDNT.AppBasics.Virtualization.Libvirt
                 throw new LibvirtException();
         }
 
-        public void CreateDomain(XmlDocument definition)
+        public void CreateDomain(XDocument definition)
         {
-            if (definition == null || definition.DocumentElement == null)
+            if (definition == null)
                 throw new ArgumentException("Definition cannot be null");
             
-            IntPtr domainPtr = NativeVirDomain.CreateXML(this.ConnectionPtr, definition.DocumentElement.OuterXml, 0);
+            IntPtr domainPtr = NativeVirDomain.CreateXML(this.ConnectionPtr, definition.ToString(), 0);
             
             if (IntPtr.Zero == domainPtr)
                 throw new LibvirtException();
