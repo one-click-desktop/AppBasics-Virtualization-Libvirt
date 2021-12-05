@@ -117,7 +117,7 @@ namespace IDNT.AppBasics.Virtualization.Libvirt.Native
             string extra = !string.IsNullOrEmpty(Str1) ? " " + Str1 : String.Empty;
             extra += !string.IsNullOrEmpty(Str2) ? (string.IsNullOrEmpty(extra) ? "" : " ") + Str2 : String.Empty;
             extra += !string.IsNullOrEmpty(Str3) ? (string.IsNullOrEmpty(extra) ? "" : " ") + Str3 : String.Empty;
-            return string.Format($"{level.ToString()} #{code.ToString()} {Message}{extra}");
+            return $"{level.ToString()} #{code.ToString()} {Message}{extra}";
         }
     }
 }
