@@ -27,12 +27,14 @@ using IDNT.AppBasics.Virtualization.Libvirt.Metrics;
 using IDNT.AppBasics.Virtualization.Libvirt.Native;
 using IDNT.AppBasics.Virtualization.Libvirt.Xml;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Xml;
 using System.Xml.Serialization;
@@ -51,7 +53,8 @@ namespace IDNT.AppBasics.Virtualization.Libvirt
         private VirDomainInfo _virDomainInfo = null;
         private readonly GuestCpuUtilizationMetric _cpuUtil;
         private readonly LibvirtDiskCollection _devices;
-
+        private readonly LibvirtInterfaceAddressCollection _interfaces;
+        
         internal LibvirtDomain(LibvirtConnection connection, Guid uniqueId, IntPtr domainPtr)
         {
             _conn = connection ?? throw new ArgumentNullException("connection");
@@ -62,6 +65,7 @@ namespace IDNT.AppBasics.Virtualization.Libvirt
                 throw new ArgumentNullException("domainPtr");
             _domainPtr = domainPtr;
             _devices = new LibvirtDiskCollection(this);
+            _interfaces = new LibvirtInterfaceAddressCollection(this);
             if (connection.Configuration.MetricsEnabled)
             {
                 _cpuUtil = new GuestCpuUtilizationMetric(GetInfo().NrVirtCpu);
@@ -387,6 +391,16 @@ namespace IDNT.AppBasics.Virtualization.Libvirt
         }
         #endregion
 
+        #region Network interfaces
+
+        public IEnumerable<IPAddress> GetDomainNetworkAddresses()
+        {
+            foreach (VirDomainInterfaceStruct iface in _interfaces)
+                foreach (VirDomainIPAddress addr in iface.Addrs.Where(a => a.Type != VirIPAddrType.VIR_IP_ADDR_TYPE_LAST))
+                    yield return IPAddress.Parse(addr.Addr);
+        }
+        #endregion
+        
         #region Stats
         private VirTypedParameter[] _cpuStats = null;
         private readonly object _statsLock = new object();

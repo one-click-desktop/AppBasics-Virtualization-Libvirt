@@ -436,8 +436,26 @@ namespace IDNT.AppBasics.Virtualization.Libvirt.Native
         /// <returns>The number of interfaces on success, -1 in case of error.</returns>
         [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl,
             EntryPoint = "virDomainInterfaceAddresses")]
-        public static extern int InterfaceAddresses(IntPtr dom, [Out]VirDomainInterfaceStruct[] ifaces, uint source,
-            uint flags);
+        private static extern int InterfaceAddresses(IntPtr dom, IntPtr ifaces, uint source, uint flags);
+
+        public static int InterfaceAddresses(IntPtr dom, out VirDomainInterfaceStruct[] ifaces, VirDomainInterfaceAddressesSource source)
+        {
+            IntPtr ifacesPtr = IntPtr.Zero;//dynamicaly defined unmanaged output from native call
+            int ret = NativeVirDomain.InterfaceAddresses(
+                dom,
+                ifacesPtr,
+                (uint)source,
+                0);
+
+            if (ifacesPtr == IntPtr.Zero) //TODO: delete - development check 
+                throw new LibvirtException("wrong query");
+            
+            ifaces = new VirDomainInterfaceStruct[ret];//Managed structure 
+            Marshal.PtrToStructure(ifacesPtr, ifaces);//Translate unmanaged code to managed
+            Marshal.FreeHGlobal(ifacesPtr);//free unmanaged code
+            
+            return ret;
+        }
         /// <summary>
         /// Determine if the domain is currently running.
         /// </summary>
