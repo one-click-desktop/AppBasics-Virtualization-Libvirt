@@ -424,6 +424,21 @@ namespace IDNT.AppBasics.Virtualization.Libvirt.Native
             return result;
         }
         /// <summary>
+        /// Return a pointer to the allocated array of pointers to interfaces present in given domain along with their IP and MAC addresses.
+        /// Note that single interface can have multiple or even 0 IP addresses.
+        /// This API dynamically allocates the virDomainInterfacePtr struct based on how many interfaces domain dom has,
+        /// usually there's 1:1 correlation. The count of the interfaces is returned as the return value.
+        /// </summary>
+        /// <param name="dom">A <see cref="IntPtr"/>pointer to the domain object.</param>
+        /// <param name="ifaces">Dynamically allocated array of <see cref="VirDomainInterfaceStruct"/> with interfaces info.</param>
+        /// <param name="source">Method of getting informations about interfaces. <see cref=""/></param>
+        /// <param name="flags">Must be 0</param>
+        /// <returns>The number of interfaces on success, -1 in case of error.</returns>
+        [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl,
+            EntryPoint = "virDomainInterfaceAddresses")]
+        public static extern int InterfaceAddresses(IntPtr dom, [Out]VirDomainInterfaceStruct[] ifaces, uint source,
+            uint flags);
+        /// <summary>
         /// Determine if the domain is currently running.
         /// </summary>
         /// <param name="dom">
