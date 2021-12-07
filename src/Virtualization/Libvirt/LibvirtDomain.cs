@@ -30,6 +30,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -53,8 +54,8 @@ namespace IDNT.AppBasics.Virtualization.Libvirt
         private VirDomainInfo _virDomainInfo = null;
         private readonly GuestCpuUtilizationMetric _cpuUtil;
         private readonly LibvirtDiskCollection _devices;
-        private readonly LibvirtInterfaceAddressCollection _interfaces;
         
+
         internal LibvirtDomain(LibvirtConnection connection, Guid uniqueId, IntPtr domainPtr)
         {
             _conn = connection ?? throw new ArgumentNullException("connection");
@@ -65,7 +66,6 @@ namespace IDNT.AppBasics.Virtualization.Libvirt
                 throw new ArgumentNullException("domainPtr");
             _domainPtr = domainPtr;
             _devices = new LibvirtDiskCollection(this);
-            _interfaces = new LibvirtInterfaceAddressCollection(this);
             if (connection.Configuration.MetricsEnabled)
             {
                 _cpuUtil = new GuestCpuUtilizationMetric(GetInfo().NrVirtCpu);
@@ -392,12 +392,25 @@ namespace IDNT.AppBasics.Virtualization.Libvirt
         #endregion
 
         #region Network interfaces
-
+        
+        /// <summary>
+        /// If domain is running we can ask for network interfaces.
+        /// If it is not booted up, it will return empty informations(garbage).
+        /// </summary>
+        /// <returns>Addresses configured at virtual machine</returns>
         public IEnumerable<IPAddress> GetDomainNetworkAddresses()
         {
-            foreach (VirDomainInterfaceStruct iface in _interfaces)
-                foreach (VirDomainIPAddress addr in iface.Addrs.Where(a => a.Type != VirIPAddrType.VIR_IP_ADDR_TYPE_LAST))
-                    yield return IPAddress.Parse(addr.Addr);
+            if (IsActive)
+            {
+                LibvirtInterfaceAddressCollection interfaces = new LibvirtInterfaceAddressCollection(this);
+                foreach (LibvirtInterfaceAddress iface in interfaces)
+                    foreach (LibvirtInterfaceAddress.PrefixAddress addr in iface.Addresses)
+                        yield return addr.Address;
+            }
+            else
+            {
+                yield break;   
+            }
         }
         #endregion
         

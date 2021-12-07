@@ -25,7 +25,9 @@
 using IDNT.AppBasics.Virtualization.Libvirt.Metrics;
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Xml.Schema;
 
 namespace IDNT.AppBasics.Virtualization.Libvirt.Native
 {
@@ -423,6 +425,7 @@ namespace IDNT.AppBasics.Virtualization.Libvirt.Native
             Marshal.FreeHGlobal(statStructPtr);
             return result;
         }
+
         /// <summary>
         /// Return a pointer to the allocated array of pointers to interfaces present in given domain along with their IP and MAC addresses.
         /// Note that single interface can have multiple or even 0 IP addresses.
@@ -436,26 +439,44 @@ namespace IDNT.AppBasics.Virtualization.Libvirt.Native
         /// <returns>The number of interfaces on success, -1 in case of error.</returns>
         [DllImport("libvirt-0.dll", CallingConvention = CallingConvention.Cdecl,
             EntryPoint = "virDomainInterfaceAddresses")]
-        private static extern int InterfaceAddresses(IntPtr dom, IntPtr ifaces, uint source, uint flags);
+        private static extern int InterfaceAddresses(IntPtr dom, [Out] out IntPtr ifaces, uint source, uint flags);//To zadzialalo dobrze
 
-        public static int InterfaceAddresses(IntPtr dom, out VirDomainInterfaceStruct[] ifaces, VirDomainInterfaceAddressesSource source)
+        /*public static int InterfaceAddresses(IntPtr dom, out VirDomainInterfaceStruct[] ifaces, VirDomainInterfaceAddressesSource source)
         {
-            IntPtr ifacesPtr = IntPtr.Zero;//dynamicaly defined unmanaged output from native call
+            ifaces = null;
+            
+            IntPtr ifacesPtr;
             int ret = NativeVirDomain.InterfaceAddresses(
                 dom,
-                ifacesPtr,
+                out ifacesPtr,
                 (uint)source,
                 0);
 
-            if (ifacesPtr == IntPtr.Zero) //TODO: delete - development check 
-                throw new LibvirtException("wrong query");
+            if (ret < 0)
+                return ret;
             
-            ifaces = new VirDomainInterfaceStruct[ret];//Managed structure 
-            Marshal.PtrToStructure(ifacesPtr, ifaces);//Translate unmanaged code to managed
-            Marshal.FreeHGlobal(ifacesPtr);//free unmanaged code
-            
+            ifaces = new VirDomainInterfaceStruct[ret];
+            for (int i = 0; i < ret; ++i)
+            {
+                VirDomainInterfaceStruct iface = new VirDomainInterfaceStruct();
+                IntPtr ifacePtr = Marshal.ReadIntPtr(ifacesPtr, i * Marshal.SizeOf(ifacesPtr));
+                Marshal.PtrToStructure(ifacePtr, iface);
+
+                VirDomainIPAddress[] addresses = new VirDomainIPAddress[iface.Naddrs];
+                for (int j = 0; j < iface.Naddrs; ++j)
+                {
+                    VirDomainIPAddress addr = new VirDomainIPAddress();
+                    IntPtr addrPtr = IntPtr.Add(iface.Addrs, j * Marshal.SizeOf(addr));
+                    Marshal.PtrToStructure(addrPtr, addr);
+                    addresses[j] = addr;
+                }
+
+                ifaces[i] = iface;
+            }
+
             return ret;
-        }
+        }*/
+        
         /// <summary>
         /// Determine if the domain is currently running.
         /// </summary>
