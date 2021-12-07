@@ -26,7 +26,6 @@
     <Win32Resource />
     <Platforms>AnyCPU;x64</Platforms>
     <RepositoryType>nuget</RepositoryType>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2|AnyCPU'">
     <PlatformTarget>x64</PlatformTarget>
