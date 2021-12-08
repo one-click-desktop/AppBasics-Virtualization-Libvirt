@@ -25,7 +25,9 @@
 using IDNT.AppBasics.Virtualization.Libvirt.Metrics;
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Xml.Schema;
 
 namespace IDNT.AppBasics.Virtualization.Libvirt.Native
 {
@@ -423,6 +425,7 @@ namespace IDNT.AppBasics.Virtualization.Libvirt.Native
             Marshal.FreeHGlobal(statStructPtr);
             return result;
         }
+        
         /// <summary>
         /// Determine if the domain is currently running.
         /// </summary>

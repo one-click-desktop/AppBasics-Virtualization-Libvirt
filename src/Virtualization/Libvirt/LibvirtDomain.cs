@@ -27,12 +27,15 @@ using IDNT.AppBasics.Virtualization.Libvirt.Metrics;
 using IDNT.AppBasics.Virtualization.Libvirt.Native;
 using IDNT.AppBasics.Virtualization.Libvirt.Xml;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Xml;
 using System.Xml.Serialization;
@@ -51,6 +54,7 @@ namespace IDNT.AppBasics.Virtualization.Libvirt
         private VirDomainInfo _virDomainInfo = null;
         private readonly GuestCpuUtilizationMetric _cpuUtil;
         private readonly LibvirtDiskCollection _devices;
+        
 
         internal LibvirtDomain(LibvirtConnection connection, Guid uniqueId, IntPtr domainPtr)
         {
@@ -387,6 +391,29 @@ namespace IDNT.AppBasics.Virtualization.Libvirt
         }
         #endregion
 
+        #region Network interfaces
+        
+        /// <summary>
+        /// If domain is running we can ask for network interfaces.
+        /// If it is not booted up, it will return empty informations(garbage).
+        /// </summary>
+        /// <returns>Addresses configured at virtual machine</returns>
+        public IEnumerable<IPAddress> GetDomainNetworkAddresses()
+        {
+            if (IsActive)
+            {
+                LibvirtInterfaceAddressCollection interfaces = new LibvirtInterfaceAddressCollection(this);
+                foreach (LibvirtInterfaceAddress iface in interfaces)
+                    foreach (LibvirtInterfaceAddress.PrefixAddress addr in iface.Addresses)
+                        yield return addr.Address;
+            }
+            else
+            {
+                yield break;   
+            }
+        }
+        #endregion
+        
         #region Stats
         private VirTypedParameter[] _cpuStats = null;
         private readonly object _statsLock = new object();
