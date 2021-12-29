@@ -34,7 +34,7 @@ namespace IDNT.AppBasics.Virtualization.Libvirt.Native
     {
         private static bool _isInitialized = false;
 
-#if NETCORE3
+#if NET
         internal static bool IsWindows() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
         internal static bool IsMacOS() => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
@@ -48,13 +48,13 @@ namespace IDNT.AppBasics.Virtualization.Libvirt.Native
                 return;
             _isInitialized = true;
 
-#if NETCORE3
+#if NET
             NativeLibrary.SetDllImportResolver(typeof(NativeVirInitialize).Assembly, MapAndLoad);
 #endif
             NativeVirLibrary.InitializeLib();
         }
 
-#if NETCORE
+#if NET
         private static IntPtr MapAndLoad(string libraryName, Assembly assembly, DllImportSearchPath? dllImportSearchPath)
         {
             string mappedName = libraryName;

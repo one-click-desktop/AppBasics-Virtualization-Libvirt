@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2;net47;net461;netcoreapp3.1;net5.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2;net47;net461;net5.0</TargetFrameworks>
     <PackageId>IDNT.AppBasics.Virtualization.Libvirt</PackageId>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <Authors>IDNT and the Livirt-dotnet contributors.</Authors>
@@ -35,8 +35,8 @@
     <PlatformTarget>x64</PlatformTarget>
     <Optimize>true</Optimize>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1'">
-    <DefineConstants>NETCORE;NETCORE3;NETCORE31</DefineConstants>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net5.0'">
+    <DefineConstants>NET</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2|AnyCPU'">
     <PlatformTarget>x64</PlatformTarget>
